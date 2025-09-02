@@ -1,11 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Header from './components/Header';
-import Home from './pages/Home';
-import Dashboard from './pages/Dashboard';
-import QuestionGenerator from './pages/QuestionGenerator';
-import QuestionList from './pages/QuestionList';
-import QuestionSets from './pages/QuestionSets';
+import Header from './components/Header.tsx';
+import Home from './pages/Home.tsx';
+import Dashboard from './pages/Dashboard.tsx';
+import QuestionGenerator from './pages/QuestionGenerator.tsx';
+import QuestionList from './pages/QuestionList.tsx';
+import QuestionSets from './pages/QuestionSets.tsx';
 import './App.css';
 
 function App() {
