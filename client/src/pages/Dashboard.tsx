@@ -18,6 +18,7 @@ const Dashboard: React.FC = () => {
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [filters, setFilters] = useState({
     level: '',
     grade: '',
@@ -100,6 +101,42 @@ const Dashboard: React.FC = () => {
       }
     } catch (error) {
       console.error('塾生の登録に失敗しました:', error);
+    }
+  };
+
+  const handleEditStudent = (student: Student) => {
+    setEditingStudent(student);
+  };
+
+  const handleUpdateStudent = async () => {
+    if (!editingStudent || !editingStudent.name.trim()) {
+      alert('塾生の名前を入力してください');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/students/${editingStudent.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: editingStudent.name,
+          level: editingStudent.level,
+          email: editingStudent.email,
+          grade: editingStudent.grade,
+          school: editingStudent.school,
+          isActive: editingStudent.isActive
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setStudents(prev => prev.map(s => s.id === editingStudent.id ? data.student : s));
+        setEditingStudent(null);
+      }
+    } catch (error) {
+      console.error('塾生の更新に失敗しました:', error);
     }
   };
 
@@ -268,6 +305,117 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
+      {/* 塾生編集フォーム */}
+      {editingStudent && (
+        <div className="card">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            塾生情報を編集
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                氏名 *
+              </label>
+              <input
+                type="text"
+                value={editingStudent.name}
+                onChange={(e) => setEditingStudent(prev => prev ? { ...prev, name: e.target.value } : null)}
+                placeholder="田中太郎"
+                className="input-field"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                英検級 *
+              </label>
+              <select
+                value={editingStudent.level}
+                onChange={(e) => setEditingStudent(prev => prev ? { ...prev, level: e.target.value } : null)}
+                className="select-field"
+              >
+                <option value="5級">5級</option>
+                <option value="4級">4級</option>
+                <option value="3級">3級</option>
+                <option value="準2級">準2級</option>
+                <option value="2級">2級</option>
+                <option value="準1級">準1級</option>
+                <option value="1級">1級</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                学年
+              </label>
+              <input
+                type="text"
+                value={editingStudent.grade}
+                onChange={(e) => setEditingStudent(prev => prev ? { ...prev, grade: e.target.value } : null)}
+                placeholder="中学3年"
+                className="input-field"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                学校
+              </label>
+              <input
+                type="text"
+                value={editingStudent.school}
+                onChange={(e) => setEditingStudent(prev => prev ? { ...prev, school: e.target.value } : null)}
+                placeholder="○○中学校"
+                className="input-field"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                メールアドレス
+              </label>
+              <input
+                type="email"
+                value={editingStudent.email}
+                onChange={(e) => setEditingStudent(prev => prev ? { ...prev, email: e.target.value } : null)}
+                placeholder="example@email.com"
+                className="input-field"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                ステータス
+              </label>
+              <select
+                value={editingStudent.isActive ? 'active' : 'inactive'}
+                onChange={(e) => setEditingStudent(prev => prev ? { ...prev, isActive: e.target.value === 'active' } : null)}
+                className="select-field"
+              >
+                <option value="active">在籍中</option>
+                <option value="inactive">退塾</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex space-x-3">
+            <button
+              onClick={handleUpdateStudent}
+              className="btn-primary"
+            >
+              更新
+            </button>
+            <button
+              onClick={() => setEditingStudent(null)}
+              className="btn-secondary"
+            >
+              キャンセル
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* フィルター */}
       <div className="card">
         <div className="flex items-center space-x-2 mb-4">
@@ -425,6 +573,7 @@ const Dashboard: React.FC = () => {
                           <BarChart3 className="w-4 h-4" />
                         </Link>
                         <button
+                          onClick={() => handleEditStudent(student)}
                           className="text-gray-600 hover:text-blue-900 p-1"
                           title="編集"
                         >
