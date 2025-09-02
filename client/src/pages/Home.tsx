@@ -7,7 +7,7 @@ const Home: React.FC = () => {
     {
       icon: Brain,
       title: 'AI問題生成',
-      description: 'OpenAIの最新技術を使用して、英検各級に適した問題を自動生成します。',
+      description: 'Google Geminiの最新技術を使用して、英検各級に適した問題を自動生成します。',
       color: 'bg-blue-500'
     },
     {
@@ -19,7 +19,7 @@ const Home: React.FC = () => {
     {
       icon: BookOpen,
       title: '多様な問題タイプ',
-      description: '語彙、文法、読解、リスニング、英作文など、様々なタイプの問題に対応。',
+      description: '穴埋め、並び替え、長文読解、英作文など、様々なタイプの問題に対応。',
       color: 'bg-purple-500'
     },
     {
