@@ -1,6 +1,7 @@
 const express = require('express');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { v4: uuidv4 } = require('uuid');
+require('dotenv').config({ path: '../../.env' });
 
 const router = express.Router();
 
@@ -72,7 +73,7 @@ router.post('/generate', async (req, res) => {
     // Gemini APIで問題生成
     const prompt = generatePrompt(level, type, count, topics, customInstructions);
     
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     
     const result = await model.generateContent(prompt);
     const response = await result.response;
