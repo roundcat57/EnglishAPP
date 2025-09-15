@@ -8,83 +8,215 @@ const router = express.Router();
 // Gemini APIクライアントの初期化
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
+// 英検級別の詳細設定
+const levelConfig = {
+  '5級': { 
+    cefr: 'Pre-A1/A1', 
+    vocab: 'NGSL1000中心', 
+    sentMin: 5, sentMax: 7, 
+    tokenMin: 5, tokenMax: 6,
+    wMin: 140, wMax: 220, para: 2, qPer: 3,
+    minWords: 30, maxWords: 50
+  },
+  '4級': { 
+    cefr: 'A1', 
+    vocab: '日常語彙', 
+    sentMin: 6, sentMax: 9, 
+    tokenMin: 5, tokenMax: 6,
+    wMin: 140, wMax: 220, para: 2, qPer: 3,
+    minWords: 30, maxWords: 50
+  },
+  '3級': { 
+    cefr: 'A1-A2', 
+    vocab: '基本語彙', 
+    sentMin: 8, sentMax: 12, 
+    tokenMin: 5, tokenMax: 6,
+    wMin: 140, wMax: 220, para: 2, qPer: 4,
+    minWords: 30, maxWords: 50
+  },
+  '準2級': { 
+    cefr: 'A2+-B1-', 
+    vocab: 'コロケーション/句動詞', 
+    sentMin: 10, sentMax: 15, 
+    tokenMin: 6, tokenMax: 7,
+    wMin: 220, wMax: 350, para: 3, qPer: 4,
+    minWords: 50, maxWords: 70
+  },
+  '2級': { 
+    cefr: 'B1', 
+    vocab: '一般的語彙', 
+    sentMin: 12, sentMax: 18, 
+    tokenMin: 6, tokenMax: 7,
+    wMin: 350, wMax: 550, para: 3, qPer: 5,
+    minWords: 80, maxWords: 120
+  },
+  '準1級': { 
+    cefr: 'B2', 
+    vocab: '抽象語彙/学術寄り', 
+    sentMin: 15, sentMax: 22, 
+    tokenMin: 6, tokenMax: 7,
+    wMin: 600, wMax: 800, para: 4, qPer: 5,
+    minWords: 100, maxWords: 140
+  },
+  '1級': { 
+    cefr: 'C1', 
+    vocab: '学術語彙/複雑な表現', 
+    sentMin: 18, sentMax: 28, 
+    tokenMin: 6, tokenMax: 7,
+    wMin: 800, wMax: 1000, para: 4, qPer: 5,
+    minWords: 170, maxWords: 230
+  }
+};
+
 // 問題生成のプロンプトテンプレート
 const generatePrompt = (level, type, count, topics, customInstructions) => {
-  const levelInfo = {
-    '5級': { vocab: '600語', description: '初歩的な英語の基礎知識', age: '小学生高学年〜中学生' },
-    '4級': { vocab: '1300語', description: '中学中級程度の英語力', age: '中学生' },
-    '3級': { vocab: '2100語', description: '中学卒業程度の英語力', age: '中学生〜高校生' },
-    '準2級': { vocab: '3600語', description: '高校中級程度の英語力', age: '高校生' },
-    '2級': { vocab: '5100語', description: '高校卒業程度の英語力', age: '高校生〜大学生' },
-    '準1級': { vocab: '7500語', description: '大学中級程度の英語力', age: '大学生〜社会人' },
-    '1級': { vocab: '10000語', description: '大学上級程度の英語力', age: '大学生〜社会人' }
-  };
-
+  const config = levelConfig[level];
+  const topic = topics && topics.length > 0 ? topics.join(', ') : '一般的な話題';
+  
   const typeInstructions = {
-    '語彙': `語彙問題の作成指示：
-- 問題文は全て英文で作成してください
-- 選択肢は4つ全て英文で作成してください
-- 英検${level}の語彙レベル（${levelInfo[level].vocab}）に合わせてください
-- 固有名詞以外は小文字で表記してください
-- 問題文の例: "Choose the word that best fits the blank: I like to _____ books in my free time."`,
+    '語彙': `語彙問題（穴埋め4択）を作成してください。
 
-    '並び替え': `並び替え問題の作成指示：
-- 日本語の文を提示してください
-- 英単語と記号をランダムに並べて提示してください
-- 固有名詞とI以外は全て小文字で表記してください
-- 正解と同じ順番にならないように注意してください
-- 問題文の例: "私は昨日学校に行きました。\n[went, to, school, yesterday, I]"
-- 正解: "I went to school yesterday."`,
+制約：
+- ${count}問の1文穴埋め(4択)を作成
+- 級は${level}（${config.cefr}）
+- トピックは${topic}
+- 各文は${config.sentMin}-${config.sentMax}語
+- 空所は1つ「( )」で表記
+- 選択肢はA-D、品詞は正解と同一
+- ダミーは頻出誤り（語法/コロケーション/時制/前置詞ずれ）を狙う
+- 正解は一意、重複正解や多義は避ける
+- 各問に日本語解説と誤答ごとの「なぜ違うか」を付す
 
-    '長文読解': `長文読解問題の作成指示：
-- 英検${level}の長文レベルに合わせた文章を作成してください
-- 設問文と選択肢は全て英文で作成してください
-- 文章の長さは級に応じて調整してください（5級: 50-100語、1級: 300-500語）
-- 内容は一般的で理解しやすいものにしてください`,
+出力JSONスキーマ：
+{
+  "type":"cloze_mcq",
+  "grade":"${level}",
+  "topic":"${topic}",
+  "items":[
+    {
+      "stem":"I ( ) to the library after school.",
+      "options":["go","goes","going","gone"],
+      "answer":"go",
+      "rationale_ja":"主語Iには原形go。三単現ではない。",
+      "distractor_notes_ja":{
+        "goes":"三人称単数用。",
+        "going":"進行形用法/補語が必要。",
+        "gone":"過去分詞で単独不可。"
+      },
+      "targets":{"grammar":"一般動詞現在","vocab_tier":"NGSL1000","length":8}
+    }
+  ]
+}`,
 
-    '英作文': `英作文問題の作成指示：
-- 英検${level}の過去問題形式に合わせてください
-- 指定語数は級に応じて調整してください（5級: 20-30語、1級: 200-250語）
-- テーマは級に応じた適切な内容にしてください
-- 日本語で指示を出してください`
+    '並び替え': `英単語並べ替え問題を作成してください。
+
+制約：
+- ${count}問の並べ替え問題を作成
+- 級は${level}（${config.cefr}）
+- トピックは${topic}
+- トークンは${config.tokenMin}-${config.tokenMax}個
+- 文頭語は必ず小文字で与え、解答時のみ大文字開始
+- 句読点トークン[, . ?]も含める
+- 同形語による多解を避けるため、時制・数・限定詞をコントロール
+- 各問に「唯一解チェック理由」と日本語解説を付す
+
+出力JSON：
+{
+  "type":"jumbled_sentence",
+  "grade":"${level}",
+  "items":[
+    {
+      "tokens":["often","to","I","go","library","the","."],
+      "answer":"I often go to the library.",
+      "why_unique_ja":"頻度副詞oftenの位置規則でS+often+Vを採用。toの目的語はthe libraryのみで多解なし。",
+      "rationale_ja":"頻度副詞の位置練習。"
+    }
+  ]
+}`,
+
+    '長文読解': `長文読解問題を作成してください。
+
+制約：
+- ${count}本文の読解セットを作成
+- 級は${level}（${config.cefr}）
+- トピックは${topic}
+- 本文語数：${config.wMin}-${config.wMax}語
+- 段落数：${config.para}
+- 設問は各本文につき${config.qPer}問
+- 内訳：主旨/詳細/推論/語彙(文脈)の比率をバランス
+- 各設問は4択(A-D)
+- 各設問に根拠文引用と日本語解説を付す
+- 本文末に見出し語リスト(級相当)を10語以内で提示
+
+出力JSON：
+{
+  "type":"reading_set",
+  "grade":"${level}",
+  "topic":"${topic}",
+  "passage":{
+    "title":"{auto_title}",
+    "text":"{本文}",
+    "word_count":{n}
+  },
+  "questions":[
+    {
+      "qtype":"main_idea",
+      "stem":"What is the main idea of the passage?",
+      "options":["A ...","B ...","C ...","D ..."],
+      "answer":"B",
+      "evidence":"第2段落: \"...\"",
+      "rationale_ja":"本文全体はBの要旨に収束。A/Dは枝葉、Cは因果を誤る。"
+    }
+  ],
+  "glossary":[{"word":"habit","ja":"習慣"}]
+}`,
+
+    '英作文': `英作文問題を作成してください。
+
+制約：
+- ${count}題のライティング課題を作成
+- 級は${level}（${config.cefr}）
+- トピックは${topic}
+- 形式：賛否/意見説明/メール返信
+- 語数：${config.minWords}-${config.maxWords}語
+- 評価観点：内容/構成/文法/語彙（各0-4）
+- 観点定義と例示をJSONに含める
+- モデル解答は含める
+
+出力JSON：
+{
+  "type":"writing_task",
+  "grade":"${level}",
+  "prompt":"Do you agree or disagree that {statement}? Give two reasons.",
+  "word_limit":{"min":${config.minWords},"max":${config.maxWords}},
+  "rubric":{
+    "content":"主張と理由が明確か（0-4）",
+    "organization":"段落構成・論理の流れ（0-4）",
+    "grammar":"時制/一致/語法の正確さ（0-4）",
+    "vocabulary":"適切さと多様性（0-4）"
+  },
+  "reference_answer":"{モデル答案}"
+}`
   };
 
-  const basePrompt = `あなたは英検${level}の問題作成の専門家です。
-以下の条件で${count}問の問題を作成してください：
+  const basePrompt = `あなたは日本の英語検定(英検)に似た形式の問題作成者です。
 
-問題タイプ: ${type}
-英検レベル: ${level} (${levelInfo[level].description}, 語彙レベル: ${levelInfo[level].vocab})
-問題数: ${count}問
-
-${topics ? `トピック: ${topics.join(', ')}` : ''}
-${customInstructions ? `追加指示: ${customInstructions}` : ''}
+共通システム指示：
+・既存の過去問や文章を記憶から再現・転載しない。必ず新規に創作する。
+・各級らしさを語彙/文法/文長/設問タイプで再現する。
+・出力は必ず日本語説明つきJSONで返す（コード以外の文章は出力しない）。
+・難易度は ${level}（CEFRおおよそ ${config.cefr}）に合わせる。
+・トピックは ${topic}（中立的・文化的偏りを避ける）。
+・解説は日本語(learners向け)、根拠は英文中の該当箇所を引用して示す。
+・選択肢は紛らわしいが文法的に成立するダミーを作る（ただし正解は一つ）。
 
 ${typeInstructions[type]}
 
-各問題は以下のJSON形式で出力してください：
-{
-  "questions": [
-    {
-      "content": "問題文",
-      "choices": [
-        {"text": "選択肢1", "isCorrect": false},
-        {"text": "選択肢2", "isCorrect": false},
-        {"text": "選択肢3", "isCorrect": false},
-        {"text": "選択肢4", "isCorrect": true}
-      ],
-      "correctAnswer": "正解の選択肢または正解文",
-      "explanation": "日本語での詳細な解説"
-    }
-  ]
-}
-
 注意事項：
-- 選択肢がある問題は4つ作成してください
-- 正解は1つだけにしてください
-- 解説は日本語で詳細に作成してください
-- 英検${level}の難易度に適した内容にしてください
 - 必ず有効なJSON形式で出力してください
-- 近年の英検過去問題を参考にしてください`;
+- 各級の語彙レベルと文長制限を厳守してください
+- 文化的偏りを避け、中立的な内容にしてください
+- 既存の過去問を再現せず、必ず新規創作してください`;
 
   return basePrompt;
 };
@@ -138,19 +270,99 @@ router.post('/generate', async (req, res) => {
       });
     }
 
-    // 生成された問題を整形
-    const formattedQuestions = questions.questions.map((q, index) => ({
-      id: uuidv4(),
-      level,
-      type,
-      difficulty: getDifficultyFromLevel(level),
-      content: q.content,
-      choices: q.choices || [],
-      correctAnswer: q.correctAnswer,
-      explanation: q.explanation,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }));
+    // 生成された問題を整形（新しいJSON形式に対応）
+    let formattedQuestions = [];
+    
+    if (questions.type === 'cloze_mcq' && questions.items) {
+      // 語彙問題（穴埋め4択）
+      formattedQuestions = questions.items.map((item, index) => ({
+        id: uuidv4(),
+        level,
+        type,
+        difficulty: getDifficultyFromLevel(level),
+        content: item.stem,
+        choices: item.options.map((option, i) => ({
+          id: `choice_${i}`,
+          text: option,
+          isCorrect: option === item.answer
+        })),
+        correctAnswer: item.answer,
+        explanation: item.rationale_ja,
+        distractorNotes: item.distractor_notes_ja || {},
+        targets: item.targets || {},
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }));
+    } else if (questions.type === 'jumbled_sentence' && questions.items) {
+      // 並び替え問題
+      formattedQuestions = questions.items.map((item, index) => ({
+        id: uuidv4(),
+        level,
+        type,
+        difficulty: getDifficultyFromLevel(level),
+        content: `次の語句を正しい順序に並び替えて英文を作りなさい。\n[${item.tokens.join(', ')}]`,
+        correctAnswer: item.answer,
+        explanation: item.rationale_ja,
+        whyUnique: item.why_unique_ja,
+        tokens: item.tokens,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }));
+    } else if (questions.type === 'reading_set' && questions.passage && questions.questions) {
+      // 長文読解問題
+      formattedQuestions = [{
+        id: uuidv4(),
+        level,
+        type,
+        difficulty: getDifficultyFromLevel(level),
+        content: `【${questions.passage.title}】\n\n${questions.passage.text}`,
+        passage: {
+          title: questions.passage.title,
+          text: questions.passage.text,
+          wordCount: questions.passage.word_count
+        },
+        questions: questions.questions.map((q, i) => ({
+          id: `q_${i}`,
+          qtype: q.qtype,
+          stem: q.stem,
+          options: q.options,
+          answer: q.answer,
+          evidence: q.evidence,
+          explanation: q.rationale_ja
+        })),
+        glossary: questions.glossary || [],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }];
+    } else if (questions.type === 'writing_task') {
+      // 英作文問題
+      formattedQuestions = [{
+        id: uuidv4(),
+        level,
+        type,
+        difficulty: getDifficultyFromLevel(level),
+        content: questions.prompt,
+        wordLimit: questions.word_limit,
+        rubric: questions.rubric,
+        referenceAnswer: questions.reference_answer,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }];
+    } else {
+      // 従来の形式（後方互換性）
+      formattedQuestions = (questions.questions || []).map((q, index) => ({
+        id: uuidv4(),
+        level,
+        type,
+        difficulty: getDifficultyFromLevel(level),
+        content: q.content,
+        choices: q.choices || [],
+        correctAnswer: q.correctAnswer,
+        explanation: q.explanation,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }));
+    }
 
     const resultData = {
       questions: formattedQuestions,

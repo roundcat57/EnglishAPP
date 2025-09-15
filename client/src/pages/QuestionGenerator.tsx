@@ -251,25 +251,130 @@ const QuestionGenerator: React.FC = () => {
                     </span>
                   </div>
                   
-                  <div className="mb-4">
-                    <p className="text-gray-900 whitespace-pre-wrap">{question.content}</p>
-                  </div>
-
-                  {question.choices && question.choices.length > 0 && (
-                    <div className="space-y-2 mb-4">
-                      {question.choices.map((choice, choiceIndex) => (
-                        <div key={choice.id} className={`p-3 rounded-lg ${
-                          choice.isCorrect ? 'bg-green-50 border border-green-200' : 'bg-gray-50'
-                        }`}>
-                          <span className="font-medium mr-2">
-                            {String.fromCharCode(65 + choiceIndex)}.
-                          </span>
-                          {choice.text}
+                  {/* 語彙問題（穴埋め4択） */}
+                  {question.type === '語彙' && (
+                    <>
+                      <div className="mb-4">
+                        <p className="text-gray-900 whitespace-pre-wrap">{question.content}</p>
+                      </div>
+                      {question.choices && question.choices.length > 0 && (
+                        <div className="space-y-2 mb-4">
+                          {question.choices.map((choice, choiceIndex) => (
+                            <div key={choice.id} className={`p-3 rounded-lg ${
+                              choice.isCorrect ? 'bg-green-50 border border-green-200' : 'bg-gray-50'
+                            }`}>
+                              <span className="font-medium mr-2">
+                                {String.fromCharCode(65 + choiceIndex)}.
+                              </span>
+                              {choice.text}
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      )}
+                    </>
                   )}
 
+                  {/* 並び替え問題 */}
+                  {question.type === '並び替え' && (
+                    <>
+                      <div className="mb-4">
+                        <p className="text-gray-900 whitespace-pre-wrap">{question.content}</p>
+                      </div>
+                      <div className="mb-4 p-3 bg-yellow-50 rounded-lg">
+                        <p className="text-sm text-gray-600">
+                          <strong>正解:</strong> {question.correctAnswer}
+                        </p>
+                        {question.whyUnique && (
+                          <p className="text-sm text-gray-600 mt-1">
+                            <strong>唯一解の理由:</strong> {question.whyUnique}
+                          </p>
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                  {/* 長文読解問題 */}
+                  {question.type === '長文読解' && (
+                    <>
+                      <div className="mb-4">
+                        <p className="text-gray-900 whitespace-pre-wrap">{question.content}</p>
+                      </div>
+                      {question.questions && question.questions.length > 0 && (
+                        <div className="space-y-4 mb-4">
+                          {question.questions.map((q, qIndex) => (
+                            <div key={q.id} className="p-4 bg-gray-50 rounded-lg">
+                              <p className="font-medium mb-2">{qIndex + 1}. {q.stem}</p>
+                              <div className="space-y-1">
+                                {q.options.map((option, optIndex) => (
+                                  <div key={optIndex} className={`p-2 rounded ${
+                                    option === q.answer ? 'bg-green-100' : 'bg-white'
+                                  }`}>
+                                    <span className="font-medium mr-2">
+                                      {String.fromCharCode(65 + optIndex)}.
+                                    </span>
+                                    {option}
+                                  </div>
+                                ))}
+                              </div>
+                              {q.evidence && (
+                                <p className="text-sm text-gray-600 mt-2">
+                                  <strong>根拠:</strong> {q.evidence}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {question.glossary && question.glossary.length > 0 && (
+                        <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                          <h5 className="font-medium mb-2">重要語彙</h5>
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            {question.glossary.map((item, i) => (
+                              <div key={i} className="flex justify-between">
+                                <span className="font-medium">{item.word}</span>
+                                <span className="text-gray-600">{item.ja}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {/* 英作文問題 */}
+                  {question.type === '英作文' && (
+                    <>
+                      <div className="mb-4">
+                        <p className="text-gray-900 whitespace-pre-wrap">{question.content}</p>
+                      </div>
+                      {question.wordLimit && (
+                        <div className="mb-4 p-3 bg-orange-50 rounded-lg">
+                          <p className="text-sm text-gray-600">
+                            <strong>語数制限:</strong> {question.wordLimit.min}-{question.wordLimit.max}語
+                          </p>
+                        </div>
+                      )}
+                      {question.rubric && (
+                        <div className="mb-4 p-3 bg-purple-50 rounded-lg">
+                          <h5 className="font-medium mb-2">評価基準</h5>
+                          <div className="space-y-1 text-sm">
+                            <p><strong>内容:</strong> {question.rubric.content}</p>
+                            <p><strong>構成:</strong> {question.rubric.organization}</p>
+                            <p><strong>文法:</strong> {question.rubric.grammar}</p>
+                            <p><strong>語彙:</strong> {question.rubric.vocabulary}</p>
+                          </div>
+                        </div>
+                      )}
+                      {question.referenceAnswer && (
+                        <div className="mb-4 p-3 bg-green-50 rounded-lg">
+                          <h5 className="font-medium mb-2">参考解答</h5>
+                          <p className="text-sm text-gray-700 whitespace-pre-wrap">{question.referenceAnswer}</p>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {/* 共通の解答・解説表示 */}
                   {question.explanation && (
                     <details className="mt-4">
                       <summary className="cursor-pointer text-blue-600 hover:text-blue-800 font-medium">
@@ -283,6 +388,18 @@ const QuestionGenerator: React.FC = () => {
                           <strong>解説:</strong>
                           <p className="mt-1 text-gray-700">{question.explanation}</p>
                         </div>
+                        {question.distractorNotes && Object.keys(question.distractorNotes).length > 0 && (
+                          <div className="mt-3">
+                            <strong>誤答の理由:</strong>
+                            <div className="mt-1 space-y-1">
+                              {Object.entries(question.distractorNotes).map(([option, reason]) => (
+                                <p key={option} className="text-sm text-gray-600">
+                                  <span className="font-medium">{option}:</span> {reason}
+                                </p>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </details>
                   )}
