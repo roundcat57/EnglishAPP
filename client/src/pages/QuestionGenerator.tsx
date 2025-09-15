@@ -63,9 +63,28 @@ const QuestionGenerator: React.FC = () => {
         <h1 className="text-3xl font-bold text-gray-900 mb-4">
           AI問題生成
         </h1>
-        <p className="text-gray-600">
-          英検の各級に対応した問題をAIが自動生成します
+        <p className="text-gray-600 mb-6">
+          英検の各級に対応した問題をGoogle Geminiが自動生成します
         </p>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <h3 className="font-semibold text-blue-900 mb-2">語彙問題</h3>
+            <p className="text-sm text-blue-700">全英文で選択肢4つ</p>
+          </div>
+          <div className="bg-green-50 p-4 rounded-lg">
+            <h3 className="font-semibold text-green-900 mb-2">並び替え問題</h3>
+            <p className="text-sm text-green-700">日本語提示、英単語ランダム配置</p>
+          </div>
+          <div className="bg-purple-50 p-4 rounded-lg">
+            <h3 className="font-semibold text-purple-900 mb-2">長文読解</h3>
+            <p className="text-sm text-purple-700">級に応じた文章長、全英文設問</p>
+          </div>
+          <div className="bg-orange-50 p-4 rounded-lg">
+            <h3 className="font-semibold text-orange-900 mb-2">英作文</h3>
+            <p className="text-sm text-orange-700">級に応じた語数指定</p>
+          </div>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
@@ -90,6 +109,17 @@ const QuestionGenerator: React.FC = () => {
                     <option key={level} value={level}>{level}</option>
                   ))}
                 </select>
+                <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-600">
+                    {formData.level === '5級' && '初歩的な英語の基礎知識（語彙: 600語）'}
+                    {formData.level === '4級' && '中学中級程度の英語力（語彙: 1,300語）'}
+                    {formData.level === '3級' && '中学卒業程度の英語力（語彙: 2,100語）'}
+                    {formData.level === '準2級' && '高校中級程度の英語力（語彙: 3,600語）'}
+                    {formData.level === '2級' && '高校卒業程度の英語力（語彙: 5,100語）'}
+                    {formData.level === '準1級' && '大学中級程度の英語力（語彙: 7,500語）'}
+                    {formData.level === '1級' && '大学上級程度の英語力（語彙: 10,000語）'}
+                  </p>
+                </div>
               </div>
 
               <div>
@@ -106,6 +136,14 @@ const QuestionGenerator: React.FC = () => {
                     <option key={type} value={type}>{type}</option>
                   ))}
                 </select>
+                <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-600">
+                    {formData.type === '語彙' && '英単語の意味を選択する問題（全英文）'}
+                    {formData.type === '並び替え' && '日本語に合うように英単語を並び替える問題'}
+                    {formData.type === '長文読解' && '長文を読んで質問に答える問題（全英文）'}
+                    {formData.type === '英作文' && '与えられたテーマで英文を書く問題'}
+                  </p>
+                </div>
               </div>
 
               <div>

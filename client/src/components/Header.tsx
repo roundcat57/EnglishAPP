@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, Plus, List, FolderOpen, Users } from 'lucide-react';
+import { BookOpen, Brain, List, FolderOpen, Users } from 'lucide-react';
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -8,7 +8,7 @@ const Header: React.FC = () => {
   const navItems = [
     { path: '/', label: 'ホーム', icon: BookOpen },
     { path: '/dashboard', label: 'ダッシュボード', icon: Users },
-    { path: '/generate', label: '問題生成', icon: Plus },
+    { path: '/generate', label: '問題生成', icon: Brain },
     { path: '/questions', label: '問題一覧', icon: List },
     { path: '/question-sets', label: '問題セット', icon: FolderOpen },
   ];
