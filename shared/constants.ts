@@ -59,30 +59,30 @@ export const QUESTION_TYPES: Record<QuestionType, {
   maxChoices: number;
   printTemplate: string;
 }> = {
-  '穴埋め': {
-    name: '穴埋め',
-    description: '空欄に適切な語句を入れる問題',
+  '語彙': {
+    name: '語彙問題',
+    description: '英単語の意味を選択する問題（全英文）',
     hasChoices: true,
     maxChoices: 4,
-    printTemplate: 'fill-in-blank'
+    printTemplate: 'vocabulary'
   },
   '並び替え': {
-    name: '並び替え',
-    description: '語句を正しい順序に並び替える問題',
+    name: '並び替え問題',
+    description: '日本語に合うように英単語を並び替える問題',
     hasChoices: false,
     maxChoices: 0,
     printTemplate: 'rearrange'
   },
   '長文読解': {
     name: '長文読解',
-    description: '英文を読んで内容理解を問う問題',
+    description: '長文を読んで質問に答える問題（全英文）',
     hasChoices: true,
     maxChoices: 4,
     printTemplate: 'reading-comprehension'
   },
   '英作文': {
     name: '英作文',
-    description: '指定されたテーマで英文を書く問題',
+    description: '与えられたテーマで英文を書く問題',
     hasChoices: false,
     maxChoices: 0,
     printTemplate: 'essay'
@@ -94,7 +94,7 @@ export const DEFAULT_GENERATION_SETTINGS = {
   defaultCount: 5,
   maxCount: 20,
   defaultLevel: '3級' as ExamLevel,
-  defaultType: '穴埋め' as QuestionType
+  defaultType: '語彙' as QuestionType
 };
 
 // 印刷設定のデフォルト値

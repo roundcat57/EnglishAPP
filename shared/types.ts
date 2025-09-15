@@ -2,7 +2,7 @@
 export type ExamLevel = '5級' | '4級' | '3級' | '準2級' | '2級' | '準1級' | '1級';
 
 // 問題のタイプ
-export type QuestionType = '穴埋め' | '並び替え' | '長文読解' | '英作文';
+export type QuestionType = '語彙' | '並び替え' | '長文読解' | '英作文';
 
 // 問題の難易度
 export type Difficulty = '初級' | '中級' | '上級';

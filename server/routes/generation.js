@@ -10,15 +10,56 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // 問題生成のプロンプトテンプレート
 const generatePrompt = (level, type, count, topics, customInstructions) => {
+  const levelInfo = {
+    '5級': { vocab: '600語', description: '初歩的な英語の基礎知識', age: '小学生高学年〜中学生' },
+    '4級': { vocab: '1300語', description: '中学中級程度の英語力', age: '中学生' },
+    '3級': { vocab: '2100語', description: '中学卒業程度の英語力', age: '中学生〜高校生' },
+    '準2級': { vocab: '3600語', description: '高校中級程度の英語力', age: '高校生' },
+    '2級': { vocab: '5100語', description: '高校卒業程度の英語力', age: '高校生〜大学生' },
+    '準1級': { vocab: '7500語', description: '大学中級程度の英語力', age: '大学生〜社会人' },
+    '1級': { vocab: '10000語', description: '大学上級程度の英語力', age: '大学生〜社会人' }
+  };
+
+  const typeInstructions = {
+    '語彙': `語彙問題の作成指示：
+- 問題文は全て英文で作成してください
+- 選択肢は4つ全て英文で作成してください
+- 英検${level}の語彙レベル（${levelInfo[level].vocab}）に合わせてください
+- 固有名詞以外は小文字で表記してください
+- 問題文の例: "Choose the word that best fits the blank: I like to _____ books in my free time."`,
+
+    '並び替え': `並び替え問題の作成指示：
+- 日本語の文を提示してください
+- 英単語と記号をランダムに並べて提示してください
+- 固有名詞とI以外は全て小文字で表記してください
+- 正解と同じ順番にならないように注意してください
+- 問題文の例: "私は昨日学校に行きました。\n[went, to, school, yesterday, I]"
+- 正解: "I went to school yesterday."`,
+
+    '長文読解': `長文読解問題の作成指示：
+- 英検${level}の長文レベルに合わせた文章を作成してください
+- 設問文と選択肢は全て英文で作成してください
+- 文章の長さは級に応じて調整してください（5級: 50-100語、1級: 300-500語）
+- 内容は一般的で理解しやすいものにしてください`,
+
+    '英作文': `英作文問題の作成指示：
+- 英検${level}の過去問題形式に合わせてください
+- 指定語数は級に応じて調整してください（5級: 20-30語、1級: 200-250語）
+- テーマは級に応じた適切な内容にしてください
+- 日本語で指示を出してください`
+  };
+
   const basePrompt = `あなたは英検${level}の問題作成の専門家です。
 以下の条件で${count}問の問題を作成してください：
 
 問題タイプ: ${type}
-英検レベル: ${level}
+英検レベル: ${level} (${levelInfo[level].description}, 語彙レベル: ${levelInfo[level].vocab})
 問題数: ${count}問
 
 ${topics ? `トピック: ${topics.join(', ')}` : ''}
 ${customInstructions ? `追加指示: ${customInstructions}` : ''}
+
+${typeInstructions[type]}
 
 各問題は以下のJSON形式で出力してください：
 {
@@ -31,20 +72,19 @@ ${customInstructions ? `追加指示: ${customInstructions}` : ''}
         {"text": "選択肢3", "isCorrect": false},
         {"text": "選択肢4", "isCorrect": true}
       ],
-      "correctAnswer": "正解の選択肢",
-      "explanation": "解説"
+      "correctAnswer": "正解の選択肢または正解文",
+      "explanation": "日本語での詳細な解説"
     }
   ]
 }
 
 注意事項：
-- 選択肢は4つ作成してください
+- 選択肢がある問題は4つ作成してください
 - 正解は1つだけにしてください
-- 問題文は日本語で作成してください
-- 選択肢は英語で作成してください
-- 解説は日本語で作成してください
+- 解説は日本語で詳細に作成してください
 - 英検${level}の難易度に適した内容にしてください
-- 必ず有効なJSON形式で出力してください`;
+- 必ず有効なJSON形式で出力してください
+- 近年の英検過去問題を参考にしてください`;
 
   return basePrompt;
 };
