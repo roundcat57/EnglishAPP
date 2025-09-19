@@ -12,12 +12,12 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const levelConfig = {
   '5級': {
     grade: '5級',
-    target_cefr: 'Pre-A1/A1',
-    length_tokens: { min: 5, max: 6 },
-    sentence_words: { min: 5, max: 7 },
-    allowed_grammar: ['be動詞/一般動詞（現在）', 'can', '前置詞 in/on/at'],
-    banned_grammar: ['受動態', '完了形', '関係代名詞', '分詞構文'],
-    vocab_policy: { bands_ok: ['高頻度日常語彙'], bands_ng: ['専門語', '低頻度イディオム'] },
+    target_cefr: 'A1',
+    length_tokens: { min: 6, max: 8 },
+    sentence_words: { min: 8, max: 12 },
+    allowed_grammar: ['be動詞/一般動詞（現在）', 'can', '前置詞 in/on/at', '現在進行形', '過去形（基本）'],
+    banned_grammar: ['受動態', '完了形', '関係代名詞', '分詞構文', '比較級'],
+    vocab_policy: { bands_ok: ['高頻度日常語彙'], bands_caution: ['基本句動詞'], bands_ng: ['専門語', '低頻度イディオム'] },
     distractor_policy: { part_of_speech_match: true, confusability: ['三単現', '時制ズレ', '前置詞ズレ'] },
     uniqueness_rule: '並べ替えは唯一解。句読点と限定詞で多解を封じる。',
     reading_load: { clauses_max: 1 },
@@ -26,29 +26,29 @@ const levelConfig = {
   },
   '4級': {
     grade: '4級',
-    target_cefr: 'A1',
-    length_tokens: { min: 6, max: 7 },
-    sentence_words: { min: 6, max: 9 },
-    allowed_grammar: ['現在進行形', '過去（規則動詞中心）', '頻度副詞'],
-    banned_grammar: ['受動態(複雑)', '完了形', '関係代名詞'],
-    vocab_policy: { bands_ok: ['高頻度日常語彙'], bands_caution: ['基本句動詞'], bands_ng: ['専門語'] },
-    distractor_policy: { part_of_speech_match: true, confusability: ['時制ズレ', '語順ズレ'] },
+    target_cefr: 'A1+',
+    length_tokens: { min: 7, max: 9 },
+    sentence_words: { min: 10, max: 15 },
+    allowed_grammar: ['現在進行形', '過去（規則動詞中心）', '頻度副詞', 'will', '比較級（基本）'],
+    banned_grammar: ['受動態(複雑)', '完了形', '関係代名詞', '分詞構文'],
+    vocab_policy: { bands_ok: ['高頻度日常語彙', '基本句動詞'], bands_caution: ['中頻度語彙'], bands_ng: ['専門語'] },
+    distractor_policy: { part_of_speech_match: true, confusability: ['時制ズレ', '語順ズレ', '比較級ズレ'] },
     uniqueness_rule: 'this/these等は片方のみ使用。',
-    reading_load: { clauses_max: 1 },
+    reading_load: { clauses_max: 2 },
     wMin: 140, wMax: 220, para: 2, qPer: 3,
     minWords: 30, maxWords: 50
   },
   '3級': {
     grade: '3級',
-    target_cefr: 'A1〜A2',
-    length_tokens: { min: 6, max: 7 },
-    sentence_words: { min: 8, max: 12 },
-    allowed_grammar: ['because/if', '比較級/最上級', 'be going to'],
-    banned_grammar: ['分詞構文', '高度な倒置', '関係代名詞の省略'],
-    vocab_policy: { bands_ok: ['基本語彙'], bands_caution: ['中頻度語彙'], bands_ng: ['専門語'] },
-    distractor_policy: { part_of_speech_match: true, confusability: ['時制ズレ', '比較級ズレ'] },
-    uniqueness_rule: 'because/if節の位置で多解を封じる。',
-    reading_load: { clauses_max: 2 },
+    target_cefr: 'A2',
+    length_tokens: { min: 8, max: 10 },
+    sentence_words: { min: 12, max: 18 },
+    allowed_grammar: ['because/if節', '比較級/最上級', 'be going to', '現在完了形', '受動態（基本）', '関係代名詞that', '不定詞/動名詞'],
+    banned_grammar: ['分詞構文', '高度な倒置', '関係代名詞の省略', '仮定法'],
+    vocab_policy: { bands_ok: ['中頻度語彙', '句動詞'], bands_caution: ['高頻度語彙'], bands_ng: ['専門語', '超低頻度語'] },
+    distractor_policy: { part_of_speech_match: true, confusability: ['時制ズレ', '比較級ズレ', '語法ズレ', '前置詞ズレ'] },
+    uniqueness_rule: 'because/if節の位置と時制で多解を封じる。',
+    reading_load: { clauses_max: 3 },
     wMin: 140, wMax: 220, para: 2, qPer: 4,
     minWords: 30, maxWords: 50
   },
@@ -119,8 +119,16 @@ const generatePrompt = (level, type, count, topics, customInstructions) => {
     '語彙': `あなたは英検風の問題作成者。以下の grade_profile に**厳密準拠**で、
 ${count}問の1空所4択を作成し、**JSONのみ**出力してください。
 
+**重要：級に応じた適切な難易度を必ず守ってください**
+- 3級：中学卒業レベル（A2）の複雑な文構造と語彙を使用
+- 4級：中学中級レベル（A1+）の基本的な複文構造を含む
+- 5級：中学初級レベル（A1）の基本的な文構造
+
 要件：
-- 文長 ${config.sentence_words.min}-${config.sentence_words.max} 語、空所は( )。
+- **文長は必ず ${config.sentence_words.min}-${config.sentence_words.max} 語**、空所は( )。
+- **文構造の複雑さ**：級に応じて従属節、関係代名詞、完了形などを適切に使用
+- **語彙レベル**：級に応じた中頻度語彙、句動詞、コロケーションを含む
+- **重要**：短い文は禁止。必ず指定された語数以上で作成してください。
 - 選択肢は**品詞一致**。ダミーは「語法/前置詞/時制/コロケーション」ズレで自然に見せる（場違い語×）。
 - 各問に日本語解説 \`rationale_ja\` と、誤答ごとの \`distractor_notes_ja\` を付す。
 - \`targets\` に grammar / vocab_tier / length などメタ情報を格納。
@@ -149,17 +157,17 @@ ${count}問の1空所4択を作成し、**JSONのみ**出力してください�
   "grade":"${level}",
   "items":[
     {
-      "stem":"I ( ) to the library every Friday.",
-      "options":["go","goes","went","going"],
-      "answer":"go",
-      "rationale_ja":"主語I→原形。",
+      "stem":"The students who ( ) the exam last week are now preparing for their next challenge.",
+      "options":["passed","pass","passing","will pass"],
+      "answer":"passed",
+      "rationale_ja":"関係代名詞whoの先行詞はstudentsで、last weekという過去の時間表現があるため過去形passedが正解。",
       "distractor_notes_ja":{
-        "goes":"三人称単数用",
-        "went":"過去形",
-        "going":"進行形用法/補語が必要"
+        "pass":"現在形で時間表現と矛盾",
+        "passing":"進行形で文脈に合わない",
+        "will pass":"未来形で時間表現と矛盾"
       },
-      "targets":{"grammar":"一般動詞現在","vocab_tier":"高頻度","length":9},
-      "self_check":{"lex_level":3,"gram_level":3,"grade_fit":3,"notes_ja":"..."}
+      "targets":{"grammar":"関係代名詞+過去形","vocab_tier":"中頻度","length":15},
+      "self_check":{"lex_level":3,"gram_level":4,"grade_fit":3,"notes_ja":"3級レベルの複雑な文構造"}
     }
   ]
 }`,
@@ -167,8 +175,16 @@ ${count}問の1空所4択を作成し、**JSONのみ**出力してください�
     '並び替え': `あなたは英検風の問題作成者。以下の grade_profile に**厳密準拠**で、
 ${count}問の並べ替え問題を作成し、**JSONのみ**出力してください。
 
+**重要：級に応じた適切な難易度を必ず守ってください**
+- 3級：中学卒業レベル（A2）の複雑な文構造と語彙を使用
+- 4級：中学中級レベル（A1+）の基本的な複文構造を含む
+- 5級：中学初級レベル（A1）の基本的な文構造
+
 要件：
-- トークンは ${config.length_tokens.min}-${config.length_tokens.max} 個。**句読点を1つ**含める（"," "." "?" など）。
+- **トークンは必ず ${config.length_tokens.min}-${config.length_tokens.max} 個**。**句読点を1つ**含める（"," "." "?" など）。
+- **文構造の複雑さ**：級に応じて従属節、関係代名詞、完了形などを適切に使用
+- **語彙レベル**：級に応じた中頻度語彙、句動詞、コロケーションを含む
+- **重要**：短い文は禁止。必ず指定されたトークン数以上で作成してください。
 - **唯一解**にするため、限定詞・時制・頻度副詞の位置・前置詞の目的語など"位置が決まる要素"を必ず含める。
 - 提示トークンは**すべて小文字**。解答は文頭のみ大文字に。
 - 各問に \`why_unique_ja\`：唯一解の理由を具体に説明。
@@ -197,17 +213,17 @@ ${count}問の並べ替え問題を作成し、**JSONのみ**出力してくだ�
   "grade":"${level}",
   "items":[
     {
-      "tokens":["often","to","I","go","library","the","."],
-      "answer":"I often go to the library.",
-      "why_unique_ja":"頻度副詞oftenの位置規則でS+often+Vを採用。toの目的語はthe libraryのみで多解なし。",
-      "rationale_ja":"頻度副詞の位置練習。",
+      "tokens":["because","was","he","tired","stayed","home","at","yesterday","he","."],
+      "answer":"He stayed at home yesterday because he was tired.",
+      "why_unique_ja":"because節の位置と時制の一致で唯一解。yesterdayの位置とwas tiredの時制で多解を封じる。",
+      "rationale_ja":"because節を使った複合文の構成練習。",
       "self_check":{
         "lex_level":3,
-        "gram_level":3,
+        "gram_level":4,
         "multi_solution_risk":2,
-        "length_fit":3,
+        "length_fit":4,
         "grade_fit":3,
-        "notes_ja":"..."
+        "notes_ja":"3級レベルの複雑な文構造"
       }
     }
   ]
