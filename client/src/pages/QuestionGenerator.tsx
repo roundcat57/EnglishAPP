@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Brain, Download, Save, RotateCcw } from 'lucide-react';
+import { Brain, Printer, Eye, EyeOff } from 'lucide-react';
 import { ExamLevel, QuestionType, Question } from '../../shared/types';
 
 const QuestionGenerator: React.FC = () => {
@@ -14,6 +14,9 @@ const QuestionGenerator: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedQuestions, setGeneratedQuestions] = useState<Question[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [showAnswers, setShowAnswers] = useState(false);
+  const [showPrintView, setShowPrintView] = useState(false);
+  const [printMode, setPrintMode] = useState<'questions' | 'answers'>('questions');
 
   const examLevels: ExamLevel[] = ['5級', '4級', '3級', '準2級', '2級', '準1級', '1級'];
   const questionTypes: QuestionType[] = ['語彙', '並び替え', '長文読解', '英作文'];
@@ -29,6 +32,8 @@ const QuestionGenerator: React.FC = () => {
   const handleGenerate = async () => {
     setIsGenerating(true);
     setError(null);
+    setShowAnswers(false);
+    setShowPrintView(false);
 
     try {
       const response = await fetch('/api/generation/generate', {
@@ -56,6 +61,29 @@ const QuestionGenerator: React.FC = () => {
       setIsGenerating(false);
     }
   };
+
+  const handleToggleAnswers = () => {
+    setShowAnswers(!showAnswers);
+  };
+
+  const handlePrintQuestions = () => {
+    setPrintMode('questions');
+    setShowPrintView(true);
+  };
+
+  const handlePrintAnswers = () => {
+    setPrintMode('answers');
+    setShowPrintView(true);
+  };
+
+  const handleClosePrintView = () => {
+    setShowPrintView(false);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -229,12 +257,34 @@ const QuestionGenerator: React.FC = () => {
                   生成された問題 ({generatedQuestions.length}問)
                 </h3>
                 <div className="flex space-x-2">
-                  <button className="btn-secondary flex items-center space-x-2">
-                    <Download className="w-4 h-4" />
+                  <button
+                    onClick={handleToggleAnswers}
+                    className="btn-secondary flex items-center space-x-2"
+                  >
+                    {showAnswers ? (
+                      <>
+                        <EyeOff className="w-4 h-4" />
+                        <span>解答を隠す</span>
+                      </>
+                    ) : (
+                      <>
+                        <Eye className="w-4 h-4" />
+                        <span>解答を表示</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={handlePrintQuestions}
+                    className="btn-secondary flex items-center space-x-2"
+                  >
+                    <Printer className="w-4 h-4" />
                     <span>問題用紙を印刷</span>
                   </button>
-                  <button className="btn-secondary flex items-center space-x-2">
-                    <Download className="w-4 h-4" />
+                  <button
+                    onClick={handlePrintAnswers}
+                    className="btn-secondary flex items-center space-x-2"
+                  >
+                    <Printer className="w-4 h-4" />
                     <span>解答用紙を印刷</span>
                   </button>
                 </div>
@@ -260,9 +310,7 @@ const QuestionGenerator: React.FC = () => {
                       {question.choices && question.choices.length > 0 && (
                         <div className="space-y-2 mb-4">
                           {question.choices.map((choice, choiceIndex) => (
-                            <div key={choice.id} className={`p-3 rounded-lg ${
-                              choice.isCorrect ? 'bg-green-50 border border-green-200' : 'bg-gray-50'
-                            }`}>
+                            <div key={choice.id} className="p-3 rounded-lg bg-gray-50">
                               <span className="font-medium mr-2">
                                 {String.fromCharCode(65 + choiceIndex)}.
                               </span>
@@ -280,16 +328,23 @@ const QuestionGenerator: React.FC = () => {
                       <div className="mb-4">
                         <p className="text-gray-900 whitespace-pre-wrap">{question.content}</p>
                       </div>
-                      <div className="mb-4 p-3 bg-yellow-50 rounded-lg">
-                        <p className="text-sm text-gray-600">
-                          <strong>正解:</strong> {question.correctAnswer}
-                        </p>
-                        {question.whyUnique && (
-                          <p className="text-sm text-gray-600 mt-1">
-                            <strong>唯一解の理由:</strong> {question.whyUnique}
+                      {question.tokens && (
+                        <div className="mb-4 p-3 bg-yellow-50 rounded-lg">
+                          <p className="text-sm text-gray-600 mb-2">
+                            <strong>並び替える語句:</strong>
                           </p>
-                        )}
-                      </div>
+                          <div className="flex flex-wrap gap-2">
+                            {question.tokens.map((token, tokenIndex) => (
+                              <span
+                                key={tokenIndex}
+                                className="px-2 py-1 bg-white border border-gray-300 rounded text-sm"
+                              >
+                                {token}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
 
@@ -306,9 +361,7 @@ const QuestionGenerator: React.FC = () => {
                               <p className="font-medium mb-2">{qIndex + 1}. {q.stem}</p>
                               <div className="space-y-1">
                                 {q.options.map((option, optIndex) => (
-                                  <div key={optIndex} className={`p-2 rounded ${
-                                    option === q.answer ? 'bg-green-100' : 'bg-white'
-                                  }`}>
+                                  <div key={optIndex} className="p-2 rounded bg-white">
                                     <span className="font-medium mr-2">
                                       {String.fromCharCode(65 + optIndex)}.
                                     </span>
@@ -316,11 +369,6 @@ const QuestionGenerator: React.FC = () => {
                                   </div>
                                 ))}
                               </div>
-                              {q.evidence && (
-                                <p className="text-sm text-gray-600 mt-2">
-                                  <strong>根拠:</strong> {q.evidence}
-                                </p>
-                              )}
                             </div>
                           ))}
                         </div>
@@ -365,43 +413,40 @@ const QuestionGenerator: React.FC = () => {
                           </div>
                         </div>
                       )}
-                      {question.referenceAnswer && (
-                        <div className="mb-4 p-3 bg-green-50 rounded-lg">
-                          <h5 className="font-medium mb-2">参考解答</h5>
-                          <p className="text-sm text-gray-700 whitespace-pre-wrap">{question.referenceAnswer}</p>
-                        </div>
-                      )}
                     </>
                   )}
 
-                  {/* 共通の解答・解説表示 */}
-                  {question.explanation && (
-                    <details className="mt-4">
-                      <summary className="cursor-pointer text-blue-600 hover:text-blue-800 font-medium">
-                        解答・解説を見る
-                      </summary>
-                      <div className="mt-2 p-4 bg-blue-50 rounded-lg">
-                        <div className="mb-2">
-                          <strong>正解:</strong> {question.correctAnswer}
+                  {/* 解答表示（解答表示時のみ） */}
+                  {showAnswers && (
+                    <div className="mt-4 p-4 bg-green-50 rounded-lg border-l-4 border-green-400">
+                      <h5 className="font-medium mb-2 text-green-800">解答</h5>
+                      {question.type === '語彙' && question.correctAnswer && (
+                        <p className="text-green-700">正解: {question.correctAnswer}</p>
+                      )}
+                      {question.type === '並び替え' && question.correctAnswer && (
+                        <p className="text-green-700">正解: {question.correctAnswer}</p>
+                      )}
+                      {question.type === '長文読解' && question.questions && (
+                        <div className="space-y-2">
+                          {question.questions.map((q, qIndex) => (
+                            <p key={qIndex} className="text-green-700">
+                              {qIndex + 1}. {q.answer}
+                            </p>
+                          ))}
                         </div>
+                      )}
+                      {question.type === '英作文' && question.referenceAnswer && (
                         <div>
-                          <strong>解説:</strong>
-                          <p className="mt-1 text-gray-700">{question.explanation}</p>
+                          <p className="text-green-700 whitespace-pre-wrap">{question.referenceAnswer}</p>
                         </div>
-                        {question.distractorNotes && Object.keys(question.distractorNotes).length > 0 && (
-                          <div className="mt-3">
-                            <strong>誤答の理由:</strong>
-                            <div className="mt-1 space-y-1">
-                              {Object.entries(question.distractorNotes).map(([option, reason]) => (
-                                <p key={option} className="text-sm text-gray-600">
-                                  <span className="font-medium">{option}:</span> {reason}
-                                </p>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </details>
+                      )}
+                      {question.explanation && (
+                        <div className="mt-3 pt-3 border-t border-green-300">
+                          <h6 className="font-medium text-green-800 mb-1">解説</h6>
+                          <p className="text-green-700 text-sm">{question.explanation}</p>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               ))}
@@ -409,6 +454,236 @@ const QuestionGenerator: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* 印刷ビュー */}
+      {showPrintView && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center p-4 border-b">
+              <h2 className="text-xl font-semibold">
+                {printMode === 'questions' ? '問題用紙' : '解答用紙'} - {formData.level} {formData.type}
+              </h2>
+              <div className="flex space-x-2">
+                <button
+                  onClick={handlePrint}
+                  className="btn-primary flex items-center space-x-2"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>印刷</span>
+                </button>
+                <button
+                  onClick={handleClosePrintView}
+                  className="btn-secondary"
+                >
+                  閉じる
+                </button>
+              </div>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
+              <div className="print-view">
+                <style jsx>{`
+                  .print-view {
+                    font-family: 'Times New Roman', serif;
+                    line-height: 1.6;
+                    color: #000;
+                    max-width: 800px;
+                    margin: 0 auto;
+                    padding: 20px;
+                  }
+                  
+                  .print-view h1 {
+                    font-size: 24px;
+                    font-weight: bold;
+                    text-align: center;
+                    margin-bottom: 30px;
+                    border-bottom: 2px solid #000;
+                    padding-bottom: 10px;
+                  }
+                  
+                  .print-view .question {
+                    margin-bottom: 30px;
+                    page-break-inside: avoid;
+                  }
+                  
+                  .print-view .question-number {
+                    font-weight: bold;
+                    font-size: 16px;
+                    margin-bottom: 10px;
+                  }
+                  
+                  .print-view .question-content {
+                    margin-bottom: 15px;
+                    font-size: 14px;
+                  }
+                  
+                  .print-view .choices {
+                    margin-left: 20px;
+                  }
+                  
+                  .print-view .choice {
+                    margin-bottom: 5px;
+                    font-size: 14px;
+                  }
+                  
+                  .print-view .answer {
+                    background-color: #f0f0f0;
+                    padding: 10px;
+                    margin-top: 10px;
+                    border-left: 4px solid #000;
+                  }
+                  
+                  .print-view .tokens {
+                    background-color: #f9f9f9;
+                    padding: 10px;
+                    margin: 10px 0;
+                    border: 1px solid #ccc;
+                  }
+                  
+                  .print-view .token {
+                    display: inline-block;
+                    background-color: #fff;
+                    border: 1px solid #999;
+                    padding: 2px 8px;
+                    margin: 2px;
+                    border-radius: 3px;
+                  }
+                  
+                  .print-view .header-info {
+                    text-align: right;
+                    margin-bottom: 20px;
+                    font-size: 12px;
+                    color: #666;
+                  }
+                  
+                  @media print {
+                    .print-view {
+                      margin: 0;
+                      padding: 0;
+                    }
+                    
+                    .print-view .question {
+                      page-break-inside: avoid;
+                    }
+                  }
+                `}</style>
+                
+                <div className="header-info">
+                  <div>日付: {new Date().toLocaleDateString('ja-JP')}</div>
+                </div>
+                
+                <h1>{printMode === 'questions' ? '問題用紙' : '解答用紙'} - {formData.level} {formData.type}</h1>
+                
+                {generatedQuestions.map((question, index) => (
+                  <div key={question.id} className="question">
+                    <div className="question-number">
+                      問題 {index + 1} ({question.type} - {question.level})
+                    </div>
+                    
+                    {/* 語彙問題 */}
+                    {question.type === '語彙' && (
+                      <>
+                        <div className="question-content">
+                          {question.content}
+                        </div>
+                        {question.choices && question.choices.length > 0 && (
+                          <div className="choices">
+                            {question.choices.map((choice, choiceIndex) => (
+                              <div key={choice.id} className="choice">
+                                {String.fromCharCode(65 + choiceIndex)}. {choice.text}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {printMode === 'answers' && question.correctAnswer && (
+                          <div className="answer">
+                            <strong>正解:</strong> {question.correctAnswer}
+                          </div>
+                        )}
+                      </>
+                    )}
+                    
+                    {/* 並び替え問題 */}
+                    {question.type === '並び替え' && (
+                      <>
+                        <div className="question-content">
+                          {question.content}
+                        </div>
+                        {question.tokens && (
+                          <div className="tokens">
+                            <strong>並び替える語句:</strong><br />
+                            {question.tokens.map((token, tokenIndex) => (
+                              <span key={tokenIndex} className="token">
+                                {token}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {printMode === 'answers' && question.correctAnswer && (
+                          <div className="answer">
+                            <strong>正解:</strong> {question.correctAnswer}
+                          </div>
+                        )}
+                      </>
+                    )}
+                    
+                    {/* 長文読解問題 */}
+                    {question.type === '長文読解' && (
+                      <>
+                        <div className="question-content">
+                          {question.content}
+                        </div>
+                        {question.questions && question.questions.length > 0 && (
+                          <div>
+                            {question.questions.map((q, qIndex) => (
+                              <div key={q.id} className="question">
+                                <div className="question-number">
+                                  {qIndex + 1}. {q.stem}
+                                </div>
+                                <div className="choices">
+                                  {q.options.map((option, optIndex) => (
+                                    <div key={optIndex} className="choice">
+                                      {String.fromCharCode(65 + optIndex)}. {option}
+                                    </div>
+                                  ))}
+                                </div>
+                                {printMode === 'answers' && (
+                                  <div className="answer">
+                                    <strong>正解:</strong> {q.answer}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
+                    
+                    {/* 英作文問題 */}
+                    {question.type === '英作文' && (
+                      <>
+                        <div className="question-content">
+                          {question.content}
+                        </div>
+                        {question.wordLimit && (
+                          <div style={{ margin: '10px 0', padding: '8px', backgroundColor: '#fff5f0', border: '1px solid #ffb366' }}>
+                            <strong>語数制限:</strong> {question.wordLimit.min}-{question.wordLimit.max}語
+                          </div>
+                        )}
+                        {printMode === 'answers' && question.referenceAnswer && (
+                          <div className="answer">
+                            <strong>参考解答:</strong><br />
+                            {question.referenceAnswer}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
