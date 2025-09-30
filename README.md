@@ -44,7 +44,31 @@
 - **AI/ML**: Google Gemini Pro API
 - **データ管理**: メモリ内ストレージ（開発用）
 
-## セットアップ
+## デプロイ（本番環境での利用）
+
+### 🌐 オンラインで利用する方法
+
+このアプリは既にデプロイ済みです。以下のURLから利用できます：
+
+- **アプリ**: https://english-app-frontend.vercel.app
+- **API**: https://english-app-api.onrender.com
+
+### 📱 スマホ・タブレットでの利用
+
+1. 上記URLにアクセス
+2. ブラウザの「ホーム画面に追加」でアプリのように使用可能
+3. QRコードスキャン機能も利用可能
+
+### 🔧 管理者設定
+
+教師用機能を使用するには：
+1. ダッシュボードの「QRロック解除」セクション
+2. 管理者トークンを入力（本番環境の管理者に確認）
+3. QRコードの解除・管理が可能
+
+---
+
+## ローカル開発環境
 
 ### 前提条件
 - Node.js (v18以上)
@@ -61,8 +85,8 @@
 
 1. リポジトリをクローン
 ```bash
-git clone <repository-url>
-cd english-exam-generator
+git clone https://github.com/roundcat57/EnglishAPP.git
+cd EnglishAPP
 ```
 
 2. 依存関係をインストール

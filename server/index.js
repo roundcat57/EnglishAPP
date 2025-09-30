@@ -19,7 +19,7 @@ app.use(helmet());
 
 // CORS設定
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: true,
   credentials: true
 }));
 
@@ -69,8 +69,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 サーバーが起動しました: http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 サーバーが起動しました: http://0.0.0.0:${PORT}`);
   console.log(`📚 岩沢学院 英検問題特化APIが利用可能です`);
 });
 

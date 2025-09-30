@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: english-app-api
+    env: node
+    plan: free
+    buildCommand: cd server && npm install
+    startCommand: cd server && node index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: ENABLE_VALIDATION
+        value: "false"
+      - key: DAILY_QUOTA_LIMIT
+        value: "1400"
+      - key: DISABLE_QUOTA_CHECK
+        value: "false"
+      - key: ADMIN_TOKEN
+        sync: false
+      - key: CLIENT_URL
+        value: https://english-app-frontend.vercel.app
+      - key: PORT
+        value: "10000"
