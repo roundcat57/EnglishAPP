@@ -3,39 +3,54 @@ const { v4: uuidv4 } = require('uuid');
 
 const router = express.Router();
 
+// 問題セットを保存するためのメモリストレージ（実際のアプリではデータベースを使用）
+const questionSets = new Map();
+
+// 問題セットを保存
+router.post('/questions', (req, res) => {
+  try {
+    const { questions, level, type, title } = req.body;
+    const questionSetId = uuidv4();
+    
+    const questionSet = {
+      id: questionSetId,
+      title: title || `${level} ${type}問題`,
+      level,
+      type,
+      questions,
+      createdAt: new Date().toISOString()
+    };
+    
+    questionSets.set(questionSetId, questionSet);
+    
+    res.json({
+      message: '問題セットが保存されました',
+      questionSetId,
+      questionSet
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: '問題セットの保存中にエラーが発生しました',
+      message: error.message
+    });
+  }
+});
+
 // 印刷用の問題セットを取得
 router.get('/questions/:questionSetId', (req, res) => {
   try {
     const { questionSetId } = req.params;
     const { includeAnswers, includeExplanations, fontSize, pageBreak } = req.query;
     
-    // 実際のアプリではデータベースから問題セットを取得
-    // ここではサンプルデータを返す
-    const sampleQuestionSet = {
-      id: questionSetId,
-      name: '3級 穴埋め問題セット',
-      level: '3級',
-      type: '穴埋め',
-      questions: [
-        {
-          id: '1',
-          content: 'I ___ to school every day.',
-          choices: ['go', 'goes', 'going', 'went'],
-          correctAnswer: 'go',
-          explanation: '主語がIなので、動詞の原形goを使用します。'
-        },
-        {
-          id: '2',
-          content: 'She ___ English very well.',
-          choices: ['speak', 'speaks', 'speaking', 'spoke'],
-          correctAnswer: 'speaks',
-          explanation: '主語がShe（三人称単数）なので、動詞にsを付けます。'
-        }
-      ]
-    };
+    const questionSet = questionSets.get(questionSetId);
+    if (!questionSet) {
+      return res.status(404).json({
+        error: '問題セットが見つかりません'
+      });
+    }
     
     const printData = {
-      questionSet: sampleQuestionSet,
+      questionSet,
       settings: {
         includeAnswers: includeAnswers === 'true',
         includeExplanations: includeExplanations === 'true',

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Brain, Printer, Eye, EyeOff } from 'lucide-react';
 import { ExamLevel, QuestionType, Question } from '../../shared/types';
+import QRCode from 'qrcode';
 
 const QuestionGenerator: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -17,6 +18,17 @@ const QuestionGenerator: React.FC = () => {
   const [showAnswers, setShowAnswers] = useState(false);
   const [showPrintView, setShowPrintView] = useState(false);
   const [printMode, setPrintMode] = useState<'questions' | 'answers'>('questions');
+  const [studentName, setStudentName] = useState<string>(() => {
+    try { return localStorage.getItem('studentName') || ''; } catch { return ''; }
+  });
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const lv = params.get('level');
+    const sn = params.get('studentName');
+    if (lv) setFormData(prev => ({ ...prev, level: lv as ExamLevel }));
+    if (sn) setStudentName(sn);
+  }, []);
 
   const examLevels: ExamLevel[] = ['5級', '4級', '3級', '準2級', '2級', '準1級', '1級'];
   const questionTypes: QuestionType[] = ['語彙', '並び替え', '長文読解', '英作文'];
@@ -68,12 +80,12 @@ const QuestionGenerator: React.FC = () => {
 
   const handlePrintQuestions = () => {
     setPrintMode('questions');
-    setShowPrintView(true);
+    openPrintWindow('questions');
   };
 
   const handlePrintAnswers = () => {
     setPrintMode('answers');
-    setShowPrintView(true);
+    openPrintWindow('answers');
   };
 
   const handleClosePrintView = () => {
@@ -81,7 +93,173 @@ const QuestionGenerator: React.FC = () => {
   };
 
   const handlePrint = () => {
-    window.print();
+    openPrintWindow(printMode);
+  };
+
+  const buildPrintHTML = async (mode: 'questions' | 'answers') => {
+    const title = `${formData.level} ${formData.type}問題`;
+    const dateStr = new Date().toLocaleDateString('ja-JP');
+    const headerName = studentName ? `受験者名: ${studentName}` : '';
+    // QRコード生成
+    const generateQR = async (text: string) => {
+      try {
+        return await QRCode.toDataURL(text, { width: 100, margin: 1 });
+      } catch (error) {
+        console.error('QR生成エラー:', error);
+        return '';
+      }
+    };
+
+    // 質問票のみQRを付与
+    const isQuestions = mode === 'questions';
+    const baseId = `${Date.now()}`;
+    const studentQrId = `S-${baseId}`;
+    const completeQrId = `C-${baseId}`;
+    const studentQR = isQuestions
+      ? await generateQR(`/api/scores/qr?payload=${encodeURIComponent(JSON.stringify({eventType:'student', studentName, qrId: studentQrId }))}`)
+      : '';
+    const completeQR = isQuestions
+      ? await generateQR(`/api/scores/qr?payload=${encodeURIComponent(JSON.stringify({eventType:'complete', studentName, qrId: completeQrId }))}`)
+      : '';
+
+    const questionsHtml = await Promise.all(generatedQuestions.map(async (question, index) => {
+      const header = `問題 ${index + 1} (${question.type} - ${question.level})`;
+      let body = '';
+      if (question.type === '語彙') {
+        body += `<div class="question-content">${question.content}</div>`;
+        if (question.choices && question.choices.length) {
+          body += `<div class="choices">${question.choices.map((c, i) => `<div class="choice">${String.fromCharCode(65+i)}. ${c.text}</div>`).join('')}</div>`;
+        }
+        if (mode === 'answers' && question.correctAnswer) {
+          body += `<div class="answer"><strong>正解:</strong> ${question.correctAnswer}</div>`;
+        }
+        if (mode === 'answers' && question.explanation) {
+          body += `<div class="explanation"><strong>解説:</strong> ${question.explanation}</div>`;
+        }
+      } else if (question.type === '並び替え') {
+        body += `<div class="question-content">${question.content}</div>`;
+        if (question.tokens && question.tokens.length) {
+          body += `<div class="tokens"><strong>並び替える語句:</strong><br/>${question.tokens.map(t => `<span class="token">${t}</span>`).join('')}</div>`;
+        }
+        if (mode === 'answers' && question.correctAnswer) {
+          body += `<div class="answer"><strong>正解:</strong> ${question.correctAnswer}</div>`;
+        }
+        if (mode === 'answers' && question.explanation) {
+          body += `<div class="explanation"><strong>解説:</strong> ${question.explanation}</div>`;
+        }
+      } else if (question.type === '長文読解') {
+        body += `<div class="question-content">${question.content}</div>`;
+        if (question.questions && question.questions.length) {
+          body += question.questions.map((q, qIndex) => {
+            let qHtml = `<div class="question"><div class="question-number">${qIndex + 1}. ${q.stem}</div>`;
+            qHtml += `<div class="choices">${q.options.map((opt, oi) => `<div class="choice">${String.fromCharCode(65+oi)}. ${opt}</div>`).join('')}</div>`;
+            if (mode === 'answers') {
+              qHtml += `<div class="answer"><strong>正解:</strong> ${q.answer}</div>`;
+              if (q.evidence) qHtml += `<div class="explanation"><strong>根拠:</strong> ${q.evidence}</div>`;
+            }
+            qHtml += `</div>`;
+            return qHtml;
+          }).join('');
+        }
+      } else if (question.type === '英作文') {
+        body += `<div class="question-content">${question.content}</div>`;
+        if (question.wordLimit) {
+          body += `<div class="notice"><strong>語数制限:</strong> ${question.wordLimit.min}-${question.wordLimit.max}語</div>`;
+        }
+        if (mode === 'answers' && question.referenceAnswer) {
+          body += `<div class="answer"><strong>参考解答:</strong><br/>${question.referenceAnswer}</div>`;
+        }
+        if (mode === 'answers' && question.explanation) {
+          body += `<div class="explanation"><strong>解説:</strong> ${question.explanation}</div>`;
+        }
+      }
+
+      // 問題QR生成（問題用紙のみ）
+      if (isQuestions) {
+        const questionQrId = `Q-${baseId}-${index + 1}`;
+        const questionQR = await generateQR(`/api/scores/qr?payload=${encodeURIComponent(JSON.stringify({ eventType: 'question', studentName, questionId: question.id, qrId: questionQrId }))}`);
+        if (questionQR) {
+          body += `<div style="margin-top:6px; font-size:12px; color:#555;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <img src="${questionQR}" style="width:60px;height:60px;" alt="QR #${index + 1}" />
+              <div>
+                <div><strong>QR #${index + 1}</strong></div>
+                <div>ID: ${questionQrId}</div>
+              </div>
+            </div>
+          </div>`;
+        }
+      }
+
+      return `<div class="question"><div class="question-number">${header}</div>${body}</div>`;
+    }));
+
+    return `<!doctype html><html lang="ja"><head><meta charset="utf-8" />
+      <title>${title}</title>
+      <style>
+        body { font-family: 'Times New Roman', serif; line-height:1.6; color:#000; background:#fff; }
+        .container { max-width:800px; margin:0 auto; padding:20px; }
+        h1{ font-size:24px; font-weight:700; text-align:center; margin:0 0 20px; padding-bottom:10px; border-bottom:2px solid #000; }
+        .meta{ display:flex; justify-content:space-between; font-size:12px; color:#666; margin-bottom:20px; }
+        .question{ margin-bottom:28px; page-break-inside:avoid; }
+        .question-number{ font-weight:700; font-size:16px; margin-bottom:8px; }
+        .question-content{ margin-bottom:12px; font-size:14px; white-space:pre-wrap; }
+        .choices{ margin-left:20px; }
+        .choice{ margin-bottom:4px; font-size:14px; }
+        .tokens{ background:#f9f9f9; border:1px solid #ccc; padding:10px; margin:10px 0; }
+        .token{ display:inline-block; background:#fff; border:1px solid #999; padding:2px 8px; margin:2px; border-radius:3px; }
+        .answer{ background:#f0f0f0; padding:10px; margin-top:10px; border-left:4px solid #000; }
+        .explanation{ background:#e8f4f8; padding:10px; margin-top:10px; border-left:4px solid #2196F3; font-size:13px; }
+        @media print { .question{ page-break-inside:avoid; } }
+      </style></head>
+      <body>
+        <div class="container">
+          <div class="meta"><div>${headerName}</div><div>日付: ${dateStr}</div></div>
+          <h1>${mode === 'questions' ? '問題用紙' : '解答用紙'} - ${formData.level} ${formData.type}</h1>
+          ${isQuestions ? `
+          <div class="qr-section" style="display:flex; justify-content:space-around; margin:20px 0; padding:10px; border:1px solid #ddd;">
+            <div class="qr-item" style="text-align:center;">
+              <div><strong>生徒QR</strong></div>
+              ${studentQR ? `<img src="${studentQR}" style="width:80px;height:80px;" alt="生徒QR" />` : '<div>QR生成エラー</div>'}
+              <div style="font-size:12px; color:#555;">ID: ${studentQrId}</div>
+            </div>
+            <div class="qr-item" style="text-align:center;">
+              <div><strong>完了QR</strong></div>
+              ${completeQR ? `<img src="${completeQR}" style="width:80px;height:80px;" alt="完了QR" />` : '<div>QR生成エラー</div>'}
+              <div style="font-size:12px; color:#555;">ID: ${completeQrId}</div>
+            </div>
+          </div>
+          ` : ''}
+          ${questionsHtml.join('')}
+        </div>
+        <script>window.onload = () => { setTimeout(() => { window.print(); setTimeout(() => window.close(), 300); }, 300); };</script>
+      </body></html>`;
+  };
+
+  const openPrintWindow = async (mode: 'questions' | 'answers') => {
+    // ユーザー操作直後にウィンドウを開く（ポップアップブロック回避）
+    const printWin = window.open('', '_blank', 'width=900,height=800');
+    if (!printWin) {
+      alert('ポップアップがブロックされました。ブラウザの設定を確認してください。');
+      return;
+    }
+
+    // 一旦プレースホルダーを描画
+    printWin.document.open();
+    printWin.document.write(`<!doctype html><html><head><meta charset="utf-8" /><title>印刷準備中...</title></head><body><p>印刷用データを準備しています...</p></body></html>`);
+    printWin.document.close();
+
+    try {
+      const html = await buildPrintHTML(mode);
+      // 生成後に本HTMLを書き込み
+      printWin.document.open();
+      printWin.document.write(html);
+      printWin.document.close();
+    } catch (e) {
+      printWin.document.open();
+      printWin.document.write(`<!doctype html><html><head><meta charset="utf-8" /><title>エラー</title></head><body><pre>${e instanceof Error ? e.message : '印刷データ生成でエラー'}</pre></body></html>`);
+      printWin.document.close();
+    }
   };
 
 
@@ -95,7 +273,7 @@ const QuestionGenerator: React.FC = () => {
           英検の各級に対応した問題をGoogle Geminiが自動生成します
         </p>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto mb-4">
           <div className="bg-blue-50 p-4 rounded-lg">
             <h3 className="font-semibold text-blue-900 mb-2">語彙問題</h3>
             <p className="text-sm text-blue-700">全英文で選択肢4つ</p>
@@ -111,6 +289,23 @@ const QuestionGenerator: React.FC = () => {
           <div className="bg-orange-50 p-4 rounded-lg">
             <h3 className="font-semibold text-orange-900 mb-2">英作文</h3>
             <p className="text-sm text-orange-700">級に応じた語数指定</p>
+          </div>
+        </div>
+        {/* 生徒名入力 */}
+        <div className="max-w-xl mx-auto mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">受験者名（印刷ヘッダーに表示）</label>
+          <div className="flex space-x-2">
+            <input
+              type="text"
+              value={studentName}
+              onChange={(e) => setStudentName(e.target.value)}
+              placeholder="山田花子"
+              className="input-field flex-1"
+            />
+            <button
+              onClick={() => { try { localStorage.setItem('studentName', studentName); alert('受験者名を保存しました'); } catch {} }}
+              className="btn-secondary"
+            >保存</button>
           </div>
         </div>
       </div>
@@ -556,9 +751,22 @@ const QuestionGenerator: React.FC = () => {
                   }
                   
                   @media print {
+                    body * {
+                      visibility: hidden;
+                    }
+                    
+                    .print-view, .print-view * {
+                      visibility: visible;
+                    }
+                    
                     .print-view {
+                      position: absolute;
+                      left: 0;
+                      top: 0;
+                      width: 100%;
                       margin: 0;
-                      padding: 0;
+                      padding: 20px;
+                      background: white;
                     }
                     
                     .print-view .question {
@@ -599,6 +807,11 @@ const QuestionGenerator: React.FC = () => {
                             <strong>正解:</strong> {question.correctAnswer}
                           </div>
                         )}
+                        {printMode === 'answers' && question.explanation && (
+                          <div className="explanation">
+                            <strong>解説:</strong> {question.explanation}
+                          </div>
+                        )}
                       </>
                     )}
                     
@@ -621,6 +834,11 @@ const QuestionGenerator: React.FC = () => {
                         {printMode === 'answers' && question.correctAnswer && (
                           <div className="answer">
                             <strong>正解:</strong> {question.correctAnswer}
+                          </div>
+                        )}
+                        {printMode === 'answers' && question.explanation && (
+                          <div className="explanation">
+                            <strong>解説:</strong> {question.explanation}
                           </div>
                         )}
                       </>
@@ -651,6 +869,11 @@ const QuestionGenerator: React.FC = () => {
                                     <strong>正解:</strong> {q.answer}
                                   </div>
                                 )}
+                                {printMode === 'answers' && q.evidence && (
+                                  <div className="explanation">
+                                    <strong>根拠:</strong> {q.evidence}
+                                  </div>
+                                )}
                               </div>
                             ))}
                           </div>
@@ -673,6 +896,11 @@ const QuestionGenerator: React.FC = () => {
                           <div className="answer">
                             <strong>参考解答:</strong><br />
                             {question.referenceAnswer}
+                          </div>
+                        )}
+                        {printMode === 'answers' && question.explanation && (
+                          <div className="explanation">
+                            <strong>解説:</strong> {question.explanation}
                           </div>
                         )}
                       </>

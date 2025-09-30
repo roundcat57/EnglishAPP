@@ -7,6 +7,7 @@ import QuestionGenerator from './pages/QuestionGenerator.tsx';
 import QuestionList from './pages/QuestionList.tsx';
 import QuestionSets from './pages/QuestionSets.tsx';
 import './App.css';
+import ScoreEntry from './pages/ScoreEntry.tsx';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="/generate" element={<QuestionGenerator />} />
             <Route path="/questions" element={<QuestionList />} />
             <Route path="/question-sets" element={<QuestionSets />} />
+            <Route path="/score-entry" element={<ScoreEntry />} />
           </Routes>
         </main>
       </div>
