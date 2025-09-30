@@ -69,8 +69,8 @@ const Dashboard: React.FC = () => {
     const fetchLogs = async () => {
       try {
         const [evRes, ulRes] = await Promise.all([
-          fetch('/api/scores/qr-events'),
-          fetch('/api/scores/qr/unlock-logs', { headers: adminToken ? { 'x-admin-token': adminToken } : {} })
+          fetch(`${process.env.REACT_APP_API_BASE || ''}/api/scores/qr-events`),
+          fetch(`${process.env.REACT_APP_API_BASE || ''}/api/scores/qr/unlock-logs`, { headers: adminToken ? { 'x-admin-token': adminToken } : {} })
         ]);
         if (!active) return;
         if (evRes.ok) {
@@ -215,7 +215,7 @@ const Dashboard: React.FC = () => {
       return;
     }
     try {
-      const res = await fetch('/api/scores/qr/unlock', {
+      const res = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/scores/qr/unlock`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(adminToken ? { 'x-admin-token': adminToken } : {}) },
         body: JSON.stringify({ qrId: unlockQrId.trim() })

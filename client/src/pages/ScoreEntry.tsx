@@ -44,7 +44,7 @@ const ScoreEntry: React.FC = () => {
         answers: [] as AnswerItem[]
       };
 
-      const res = await fetch('/api/scores', {
+      const res = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/scores`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

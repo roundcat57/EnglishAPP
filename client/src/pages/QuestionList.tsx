@@ -31,7 +31,7 @@ const QuestionList: React.FC = () => {
 
   const fetchQuestions = async () => {
     try {
-      const response = await fetch('/api/questions');
+      const response = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/questions`);
       if (response.ok) {
         const data = await response.json();
         setQuestions(data.questions || []);
