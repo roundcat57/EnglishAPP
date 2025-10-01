@@ -5,6 +5,7 @@ nixPkgs = ["nodejs", "npm"]
 cmds = ["cd server && npm install --production"]
 
 [start]
+workingDirectory = "server"
 cmd = "node index.js"
 
 [phases.preDeploy]
