@@ -2,7 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
 // データベースパスを設定（環境変数またはデフォルト）
-const dbPath = process.env.DATABASE_URL || path.join(__dirname, 'database.sqlite');
+const dbPath = process.env.DATABASE_URL || path.join(__dirname, 'data', 'database.sqlite');
 
 // データベースディレクトリが存在しない場合は作成
 const dbDir = path.dirname(dbPath);
