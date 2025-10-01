@@ -1,0 +1,33 @@
+{
+  "name": "English App API",
+  "description": "English Exam Generator API Server",
+  "repository": "https://github.com/roundcat57/EnglishAPP",
+  "logo": "https://via.placeholder.com/150",
+  "keywords": ["node", "express", "english", "exam", "api"],
+  "image": "heroku/nodejs",
+  "stack": "heroku-22",
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "free"
+    }
+  },
+  "env": {
+    "NODE_ENV": {
+      "description": "Node environment",
+      "value": "production"
+    },
+    "GEMINI_API_KEY": {
+      "description": "Google Gemini API Key",
+      "required": true
+    },
+    "GEMINI_MODEL": {
+      "description": "Gemini Model",
+      "value": "gemini-2.5-flash"
+    },
+    "ADMIN_TOKEN": {
+      "description": "Admin token for teacher functions",
+      "required": true
+    }
+  }
+}

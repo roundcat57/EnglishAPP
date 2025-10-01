@@ -16,6 +16,6 @@
     }
   ],
   "env": {
-    "REACT_APP_API_BASE": "https://english-app-api.onrender.com"
+    "REACT_APP_API_BASE": ""
   }
 }
