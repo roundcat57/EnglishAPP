@@ -2,7 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 require('dotenv').config({ path: '../.env' });
+const db = require('./database');
 
 const questionRoutes = require('./routes/questions');
 const questionSetRoutes = require('./routes/questionSets');
@@ -13,6 +15,7 @@ const printRoutes = require('./routes/print');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
+const dbPath = process.env.DATABASE_URL || path.join(__dirname, 'database.sqlite');
 
 // セキュリティミドルウェア
 app.use(helmet());
@@ -27,7 +30,8 @@ app.use(cors({
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15分
   max: 100, // 15分間に100リクエストまで
-  message: 'リクエストが多すぎます。しばらく待ってから再試行してください。'
+  message: 'リクエストが多すぎます。しばらく待ってから再試行してください。',
+  trustProxy: true // Railway用の設定
 });
 app.use('/api/', limiter);
 
@@ -72,6 +76,7 @@ app.use((err, req, res, next) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 サーバーが起動しました: http://0.0.0.0:${PORT}`);
   console.log(`📚 岩沢学院 英検問題特化APIが利用可能です`);
+  console.log(`💾 データベース: ${dbPath}`);
 });
 
 module.exports = app;
