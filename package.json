@@ -7,8 +7,9 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd server && npm run dev",
     "client": "cd client && npm start",
-    "build": "cd client && npm run build",
-    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
+    "build": "echo 'No build step needed for Railway deployment'",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install",
+    "start": "cd server && node index.js"
   },
   "keywords": ["英検", "英語", "問題生成", "AI", "教育", "Gemini", "岩沢学院"],
   "author": "Your Name",
