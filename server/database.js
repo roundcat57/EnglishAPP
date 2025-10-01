@@ -15,7 +15,16 @@ const db = new sqlite3.Database(dbPath, (err) => {
     console.error('❌ データベース接続エラー:', err);
     console.error('📁 データベースパス:', dbPath);
     console.error('📁 データベースディレクトリ:', dbDir);
-    process.exit(1);
+    console.error('🔧 ディレクトリ作成を試行中...');
+    
+    // ディレクトリを再作成してリトライ
+    try {
+      require('fs').mkdirSync(dbDir, { recursive: true });
+      console.log('✅ ディレクトリ作成成功');
+    } catch (mkdirErr) {
+      console.error('❌ ディレクトリ作成失敗:', mkdirErr);
+      process.exit(1);
+    }
   } else {
     console.log('✅ データベースに接続しました:', dbPath);
   }
