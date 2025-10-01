@@ -29,5 +29,10 @@
       "description": "Admin token for teacher functions",
       "required": true
     }
-  }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
 }
