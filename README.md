@@ -46,9 +46,13 @@
 
 ## デプロイ（本番環境での利用）
 
-### 🚀 Railwayでのデプロイ（推奨）
+### 🚀 確実なデプロイ方法
 
-**最も簡単で確実なデプロイ方法です：**
+**製品化に適した3つの方法を提供：**
+
+#### 方法1: Railway（推奨）
+
+**最も簡単で確実：**
 
 1. **Railwayアカウント作成**
    - [Railway.app](https://railway.app) にアクセス
@@ -68,9 +72,54 @@
    - 自動的にデプロイが開始されます
    - 完了後、提供されるURLでアクセス可能
 
+#### 方法2: Heroku
+
+**安定性が高い：**
+
+1. **Herokuアカウント作成**
+   - [Heroku.com](https://heroku.com) にアクセス
+   - アカウント作成
+
+2. **Heroku CLIインストール**
+   ```bash
+   # macOS
+   brew install heroku/brew/heroku
+   
+   # Windows
+   # https://devcenter.heroku.com/articles/heroku-cli からダウンロード
+   ```
+
+3. **アプリ作成とデプロイ**
+   ```bash
+   heroku login
+   heroku create your-app-name
+   heroku config:set GEMINI_API_KEY=your_api_key
+   heroku config:set ADMIN_TOKEN=your_admin_token
+   git push heroku main
+   ```
+
+#### 方法3: Docker（本格運用）
+
+**スケーラブルで本格的：**
+
+1. **Dockerインストール**
+   - [Docker Desktop](https://www.docker.com/products/docker-desktop) をインストール
+
+2. **環境変数設定**
+   ```bash
+   export GEMINI_API_KEY=your_api_key
+   export ADMIN_TOKEN=your_admin_token
+   ```
+
+3. **デプロイ実行**
+   ```bash
+   ./deploy.sh
+   docker-compose up -d
+   ```
+
 ### 📱 スマホ・タブレットでの利用
 
-1. Railwayで提供されるURLにアクセス
+1. デプロイされたURLにアクセス
 2. ブラウザの「ホーム画面に追加」でアプリのように使用可能
 3. QRコードスキャン機能も利用可能
 4. **データは永続化される** - サーバー再起動でもデータは保持
@@ -79,7 +128,7 @@
 
 教師用機能を使用するには：
 1. ダッシュボードの「QRロック解除」セクション
-2. 管理者トークンを入力（Railwayで設定した値）
+2. 管理者トークンを入力（デプロイ時に設定した値）
 3. QRコードの解除・管理が可能
 
 ### 💾 データ永続化
@@ -87,6 +136,23 @@
 - **SQLiteデータベース**を使用
 - 生徒情報、スコア、QRイベントが永続保存
 - サーバー再起動でもデータは保持
+- Docker使用時はボリュームで永続化
+
+### 🛠️ トラブルシューティング
+
+**よくある問題と解決方法：**
+
+1. **デプロイ失敗**
+   - 環境変数が正しく設定されているか確認
+   - `./deploy.sh` でローカルテストを実行
+
+2. **データベースエラー**
+   - SQLiteファイルの権限を確認
+   - データディレクトリが存在するか確認
+
+3. **API接続エラー**
+   - CORS設定を確認
+   - フロントエンドのAPI_BASE_URLを確認
 
 ---
 

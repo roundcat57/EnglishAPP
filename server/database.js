@@ -10,7 +10,16 @@ if (!require('fs').existsSync(dbDir)) {
   require('fs').mkdirSync(dbDir, { recursive: true });
 }
 
-const db = new sqlite3.Database(dbPath);
+const db = new sqlite3.Database(dbPath, (err) => {
+  if (err) {
+    console.error('❌ データベース接続エラー:', err);
+    console.error('📁 データベースパス:', dbPath);
+    console.error('📁 データベースディレクトリ:', dbDir);
+    process.exit(1);
+  } else {
+    console.log('✅ データベースに接続しました:', dbPath);
+  }
+});
 
 // データベース初期化
 db.serialize(() => {

@@ -73,10 +73,35 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+// サーバー起動
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 サーバーが起動しました: http://0.0.0.0:${PORT}`);
   console.log(`📚 岩沢学院 英検問題特化APIが利用可能です`);
   console.log(`💾 データベース: ${dbPath}`);
+  console.log(`🌍 環境: ${process.env.NODE_ENV || 'development'}`);
+});
+
+// エラーハンドリング
+server.on('error', (err) => {
+  console.error('❌ サーバーエラー:', err);
+  process.exit(1);
+});
+
+// プロセス終了時の処理
+process.on('SIGTERM', () => {
+  console.log('🛑 SIGTERM受信、サーバーを終了します');
+  server.close(() => {
+    console.log('✅ サーバーが正常に終了しました');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('🛑 SIGINT受信、サーバーを終了します');
+  server.close(() => {
+    console.log('✅ サーバーが正常に終了しました');
+    process.exit(0);
+  });
 });
 
 module.exports = app;

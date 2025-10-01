@@ -28,6 +28,10 @@
     "ADMIN_TOKEN": {
       "description": "Admin token for teacher functions",
       "required": true
+    },
+    "DATABASE_URL": {
+      "description": "Database URL",
+      "value": "sqlite:./database.sqlite"
     }
   },
   "buildpacks": [

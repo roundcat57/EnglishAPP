@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["nodejs", "npm"]
+
+[phases.install]
+cmds = ["cd server && npm install"]
+
+[start]
+cmd = "cd server && node index.js"
+
+[phases.build]
+cmds = ["echo 'Skipping build for API-only deployment'"]

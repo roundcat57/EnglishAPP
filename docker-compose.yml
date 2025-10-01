@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - NODE_ENV=production
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=gemini-2.5-flash
+      - ADMIN_TOKEN=${ADMIN_TOKEN}
+      - DATABASE_URL=sqlite:/app/data/database.sqlite
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_BASE=http://localhost:8000
+    depends_on:
+      - api
+    restart: unless-stopped
