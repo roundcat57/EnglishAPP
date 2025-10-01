@@ -26,14 +26,16 @@ app.use(cors({
   credentials: true
 }));
 
-// レート制限
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15分
-  max: 100, // 15分間に100リクエストまで
-  message: 'リクエストが多すぎます。しばらく待ってから再試行してください。',
-  trustProxy: true // Railway用の設定
-});
-app.use('/api/', limiter);
+// レート制限（本番環境では無効化）
+if (process.env.NODE_ENV !== 'production') {
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15分
+    max: 100, // 15分間に100リクエストまで
+    message: 'リクエストが多すぎます。しばらく待ってから再試行してください。',
+    trustProxy: true // Railway用の設定
+  });
+  app.use('/api/', limiter);
+}
 
 // ボディパーサー
 app.use(express.json({ limit: '10mb' }));
@@ -49,11 +51,21 @@ app.use('/api/print', printRoutes);
 
 // ヘルスチェック
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
-    timestamp: new Date().toISOString(),
-    service: '岩沢学院 英検問題特化API'
-  });
+  try {
+    res.status(200).json({ 
+      status: 'OK', 
+      timestamp: new Date().toISOString(),
+      service: '岩沢学院 英検問題特化API',
+      environment: process.env.NODE_ENV || 'development',
+      port: process.env.PORT || 8000
+    });
+  } catch (error) {
+    console.error('ヘルスチェックエラー:', error);
+    res.status(500).json({ 
+      status: 'ERROR', 
+      error: error.message 
+    });
+  }
 });
 
 // 404ハンドラー
