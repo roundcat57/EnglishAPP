@@ -48,7 +48,7 @@ const QuestionGenerator: React.FC = () => {
     setShowPrintView(false);
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE || 'https://web-production-6e3ec.up.railway.app'}/api/generation/generate`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/generation/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

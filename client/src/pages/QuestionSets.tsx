@@ -26,7 +26,7 @@ const QuestionSets: React.FC = () => {
 
   const fetchQuestionSets = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE || 'https://web-production-6e3ec.up.railway.app'}/api/question-sets`);
+      const response = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/question-sets`);
       if (response.ok) {
         const data = await response.json();
         setQuestionSets(data.questionSets || []);
@@ -45,7 +45,7 @@ const QuestionSets: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE || 'https://web-production-6e3ec.up.railway.app'}/api/question-sets`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/question-sets`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

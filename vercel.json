@@ -22,8 +22,5 @@
       "src": "/(.*)",
       "dest": "/client/$1"
     }
-  ],
-  "env": {
-    "REACT_APP_API_BASE": ""
-  }
+  ]
 }
