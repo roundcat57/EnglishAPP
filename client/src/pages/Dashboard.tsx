@@ -60,7 +60,7 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [applyFilters]);
+  }, [filters, students, applyFilters]);
 
   // 最近のスキャン・解除履歴のポーリング（軽量）
   useEffect(() => {

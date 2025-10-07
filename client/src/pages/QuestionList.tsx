@@ -27,7 +27,7 @@ const QuestionList: React.FC = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [applyFilters]);
+  }, [filters, questions, applyFilters]);
 
   const fetchQuestions = async () => {
     try {

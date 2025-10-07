@@ -25,5 +25,10 @@
   ],
   "env": {
     "REACT_APP_API_BASE": ""
+  },
+  "build": {
+    "env": {
+      "REACT_APP_API_BASE": ""
+    }
   }
 }
