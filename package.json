@@ -1,5 +1,5 @@
 {
-  "name": "english-app",
+  "name": "english-exam-app",
   "version": "1.0.0",
   "description": "岩沢学院向け 英検問題特化アプリ（Gemini API使用）",
   "main": "server/index.js",

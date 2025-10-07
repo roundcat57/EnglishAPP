@@ -28,16 +28,6 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ],
-    "rules": {
-      "react-hooks/exhaustive-deps": "off",
-      "react-hooks/rules-of-hooks": "off"
-    }
-  },
   "browserslist": {
     "production": [
       ">0.2%",
