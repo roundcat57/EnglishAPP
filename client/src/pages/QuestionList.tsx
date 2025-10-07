@@ -27,11 +27,11 @@ const QuestionList: React.FC = () => {
 
   useEffect(() => {
     applyFilters();
-  }, [filters, questions]);
+  }, [filters, questions, applyFilters]);
 
   const fetchQuestions = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/questions`);
+      const response = await fetch(`${process.env.REACT_APP_API_BASE || 'https://web-production-6e3ec.up.railway.app'}/api/questions`);
       if (response.ok) {
         const data = await response.json();
         setQuestions(data.questions || []);

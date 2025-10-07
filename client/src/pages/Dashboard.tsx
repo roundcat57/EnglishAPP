@@ -61,7 +61,7 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const run = () => applyFilters();
     run();
-  }, [filters, students]);
+  }, [filters, students, applyFilters]);
 
   // 最近のスキャン・解除履歴のポーリング（軽量）
   useEffect(() => {
@@ -69,8 +69,8 @@ const Dashboard: React.FC = () => {
     const fetchLogs = async () => {
       try {
         const [evRes, ulRes] = await Promise.all([
-          fetch(`${process.env.REACT_APP_API_BASE || ''}/api/scores/qr-events`),
-          fetch(`${process.env.REACT_APP_API_BASE || ''}/api/scores/qr/unlock-logs`, { headers: adminToken ? { 'x-admin-token': adminToken } : {} })
+          fetch(`${process.env.REACT_APP_API_BASE || 'https://web-production-6e3ec.up.railway.app'}/api/scores/qr-events`),
+          fetch(`${process.env.REACT_APP_API_BASE || 'https://web-production-6e3ec.up.railway.app'}/api/scores/qr/unlock-logs`, { headers: adminToken ? { 'x-admin-token': adminToken } : {} })
         ]);
         if (!active) return;
         if (evRes.ok) {
@@ -86,7 +86,7 @@ const Dashboard: React.FC = () => {
     fetchLogs();
     const id = setInterval(fetchLogs, 5000);
     return () => { active = false; clearInterval(id); };
-  }, []);
+  }, [adminToken]);
 
   const fetchStudents = async () => {
     try {
@@ -215,7 +215,7 @@ const Dashboard: React.FC = () => {
       return;
     }
     try {
-      const res = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/scores/qr/unlock`, {
+      const res = await fetch(`${process.env.REACT_APP_API_BASE || 'https://web-production-6e3ec.up.railway.app'}/api/scores/qr/unlock`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...(adminToken ? { 'x-admin-token': adminToken } : {}) },
         body: JSON.stringify({ qrId: unlockQrId.trim() })

@@ -2,7 +2,7 @@
 nixPkgs = ["nodejs", "npm"]
 
 [phases.install]
-cmds = ["cd server && npm install --production"]
+cmds = ["cd server && npm install"]
 
 [start]
 workingDirectory = "server"
