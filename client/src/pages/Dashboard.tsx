@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Users, Plus, Search, Filter, Eye, Edit, Trash2, BarChart3, Play, Activity, Printer, Unlock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -102,7 +102,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     let filtered = [...students];
 
     if (filters.level) {
@@ -120,7 +120,7 @@ const Dashboard: React.FC = () => {
     }
 
     setFilteredStudents(filtered);
-  };
+  }, [students, filters]);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));

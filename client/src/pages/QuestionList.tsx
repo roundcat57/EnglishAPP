@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { List, Filter, Search, Edit, Trash2 } from 'lucide-react';
 
 interface Question {
@@ -43,7 +43,7 @@ const QuestionList: React.FC = () => {
     }
   };
 
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     let filtered = [...questions];
 
     if (filters.level) {
@@ -62,7 +62,7 @@ const QuestionList: React.FC = () => {
     }
 
     setFilteredQuestions(filtered);
-  };
+  }, [questions, filters]);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
