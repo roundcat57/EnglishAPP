@@ -54,6 +54,26 @@ const Dashboard: React.FC = () => {
   const [unlockLogs, setUnlockLogs] = useState<any[]>([]);
   const [adminToken, setAdminToken] = useState<string>('');
 
+  const applyFilters = useCallback(() => {
+    let filtered = [...students];
+
+    if (filters.level) {
+      filtered = filtered.filter(s => s.level === filters.level);
+    }
+    if (filters.grade) {
+      filtered = filtered.filter(s => s.grade === filters.grade);
+    }
+    if (filters.search) {
+      filtered = filtered.filter(s => 
+        s.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+        s.email.toLowerCase().includes(filters.search.toLowerCase()) ||
+        s.school.toLowerCase().includes(filters.search.toLowerCase())
+      );
+    }
+
+    setFilteredStudents(filtered);
+  }, [students, filters]);
+
   useEffect(() => {
     fetchStudents();
   }, []);
@@ -100,26 +120,6 @@ const Dashboard: React.FC = () => {
       setLoading(false);
     }
   };
-
-  const applyFilters = useCallback(() => {
-    let filtered = [...students];
-
-    if (filters.level) {
-      filtered = filtered.filter(s => s.level === filters.level);
-    }
-    if (filters.grade) {
-      filtered = filtered.filter(s => s.grade === filters.grade);
-    }
-    if (filters.search) {
-      filtered = filtered.filter(s => 
-        s.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-        s.email.toLowerCase().includes(filters.search.toLowerCase()) ||
-        s.school.toLowerCase().includes(filters.search.toLowerCase())
-      );
-    }
-
-    setFilteredStudents(filtered);
-  }, [students, filters]);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));

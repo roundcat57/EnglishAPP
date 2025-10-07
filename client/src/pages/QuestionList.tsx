@@ -21,6 +21,27 @@ const QuestionList: React.FC = () => {
   });
   const [loading, setLoading] = useState(true);
 
+  const applyFilters = useCallback(() => {
+    let filtered = [...questions];
+
+    if (filters.level) {
+      filtered = filtered.filter(q => q.level === filters.level);
+    }
+    if (filters.type) {
+      filtered = filtered.filter(q => q.type === filters.type);
+    }
+    if (filters.difficulty) {
+      filtered = filtered.filter(q => q.difficulty === filters.difficulty);
+    }
+    if (filters.search) {
+      filtered = filtered.filter(q => 
+        q.content.toLowerCase().includes(filters.search.toLowerCase())
+      );
+    }
+
+    setFilteredQuestions(filtered);
+  }, [questions, filters]);
+
   useEffect(() => {
     fetchQuestions();
   }, []);
@@ -42,27 +63,6 @@ const QuestionList: React.FC = () => {
       setLoading(false);
     }
   };
-
-  const applyFilters = useCallback(() => {
-    let filtered = [...questions];
-
-    if (filters.level) {
-      filtered = filtered.filter(q => q.level === filters.level);
-    }
-    if (filters.type) {
-      filtered = filtered.filter(q => q.type === filters.type);
-    }
-    if (filters.difficulty) {
-      filtered = filtered.filter(q => q.difficulty === filters.difficulty);
-    }
-    if (filters.search) {
-      filtered = filtered.filter(q => 
-        q.content.toLowerCase().includes(filters.search.toLowerCase())
-      );
-    }
-
-    setFilteredQuestions(filtered);
-  }, [questions, filters]);
 
   const handleFilterChange = (key: string, value: string) => {
     setFilters(prev => ({ ...prev, [key]: value }));
