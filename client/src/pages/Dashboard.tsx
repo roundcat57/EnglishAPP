@@ -251,7 +251,7 @@ const Dashboard: React.FC = () => {
     try {
       // 弱点タイプごとに問題を生成
       for (const type of weaknessTypes) {
-        const response = await fetch('/api/generation/generate', {
+        const response = await fetch('/api/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
