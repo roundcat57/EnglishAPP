@@ -48,30 +48,35 @@ const QuestionGenerator: React.FC = () => {
     setShowPrintView(false);
 
     try {
-      // テスト用のダミーデータを生成
-      const questions = [];
-      for (let i = 0; i < (formData.count || 1); i++) {
-        questions.push({
-          id: `q-${i + 1}`,
-          level: formData.level,
-          type: formData.type,
-          difficulty: '初級',
-          content: `${formData.level} ${formData.type} 問題 ${i + 1}`,
-          choices: [
-            { id: 'choice_1', text: '選択肢A', isCorrect: true },
-            { id: 'choice_2', text: '選択肢B', isCorrect: false },
-            { id: 'choice_3', text: '選択肢C', isCorrect: false },
-            { id: 'choice_4', text: '選択肢D', isCorrect: false }
-          ],
-          correctAnswer: '選択肢A',
-          explanation: '正解の説明です。',
-          createdAt: new Date(),
-          updatedAt: new Date()
-        });
+      const response = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          topics: formData.topics ? formData.topics.split(',').map(t => t.trim()) : undefined,
+          customInstructions: formData.customInstructions || undefined
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || '問題生成に失敗しました');
       }
 
-      console.log('Generated questions:', questions);
-      setGeneratedQuestions(questions);
+      const result = await response.json();
+      console.log('API Response:', result);
+      
+      // レスポンス形式を確認
+      if (result.questions && Array.isArray(result.questions)) {
+        setGeneratedQuestions(result.questions);
+      } else if (result.error) {
+        throw new Error(result.error);
+      } else {
+        console.error('Unexpected response format:', result);
+        throw new Error('予期しないレスポンス形式です');
+      }
     } catch (err) {
       console.error('Error details:', err);
       setError(err instanceof Error ? err.message : '問題生成中にエラーが発生しました');
