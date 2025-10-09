@@ -5,6 +5,7 @@ module.exports = {
   ],
   rules: {
     'react-hooks/exhaustive-deps': 'off',
-    'react-hooks/rules-of-hooks': 'off'
+    'react-hooks/rules-of-hooks': 'off',
+    '@typescript-eslint/no-use-before-define': 'off',
   }
 };
