@@ -15,29 +15,36 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { grade, type, numQuestions } = req.body;
+    const { level, type, count } = req.body;
 
-    // 簡単な問題生成（実際のGemini APIは後で実装）
+    // 簡単な問題生成（テスト用）
     const questions = [];
-    for (let i = 0; i < numQuestions; i++) {
+    for (let i = 0; i < (count || 1); i++) {
       questions.push({
         id: `q-${i + 1}`,
-        question: `${grade} ${type} 問題 ${i + 1}`,
-        options: ['選択肢A', '選択肢B', '選択肢C', '選択肢D'],
+        level: level || '3級',
+        type: type || '語彙',
+        difficulty: '初級',
+        content: `${level || '3級'} ${type || '語彙'} 問題 ${i + 1}`,
+        choices: [
+          { id: 'choice_1', text: '選択肢A', isCorrect: true },
+          { id: 'choice_2', text: '選択肢B', isCorrect: false },
+          { id: 'choice_3', text: '選択肢C', isCorrect: false },
+          { id: 'choice_4', text: '選択肢D', isCorrect: false }
+        ],
         correctAnswer: '選択肢A',
-        explanation: '正解の説明です。'
+        explanation: '正解の説明です。',
+        createdAt: new Date(),
+        updatedAt: new Date()
       });
     }
 
     res.status(200).json({
-      success: true,
       questions,
-      metadata: {
-        grade,
-        type,
-        count: questions.length,
-        generatedAt: new Date().toISOString()
-      }
+      totalGenerated: questions.length,
+      generationTime: new Date().toISOString(),
+      level: level || '3級',
+      type: type || '語彙'
     });
   } catch (error) {
     console.error('問題生成エラー:', error);
