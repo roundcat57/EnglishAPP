@@ -66,8 +66,19 @@ const QuestionGenerator: React.FC = () => {
       }
 
       const result = await response.json();
-      setGeneratedQuestions(result.questions);
+      console.log('API Response:', result);
+      
+      // レスポンス形式を確認
+      if (result.questions && Array.isArray(result.questions)) {
+        setGeneratedQuestions(result.questions);
+      } else if (result.error) {
+        throw new Error(result.error);
+      } else {
+        console.error('Unexpected response format:', result);
+        throw new Error('予期しないレスポンス形式です');
+      }
     } catch (err) {
+      console.error('Error details:', err);
       setError(err instanceof Error ? err.message : '問題生成中にエラーが発生しました');
     } finally {
       setIsGenerating(false);
