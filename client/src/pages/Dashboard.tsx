@@ -109,11 +109,41 @@ const Dashboard: React.FC = () => {
 
   const fetchStudents = async () => {
     try {
-      const response = await fetch('/api/students');
-      if (response.ok) {
-        const data = await response.json();
-        setStudents(data.students || []);
-      }
+      // ダミーデータで塾生を初期化
+      const dummyStudents: Student[] = [
+        {
+          id: 'student-1',
+          name: '山田太郎',
+          level: '3級',
+          email: 'yamada@example.com',
+          grade: '中学3年',
+          school: '岩沢中学校',
+          joinedAt: '2024-01-15T00:00:00Z',
+          isActive: true
+        },
+        {
+          id: 'student-2',
+          name: '佐藤花子',
+          level: '準2級',
+          email: 'sato@example.com',
+          grade: '高校1年',
+          school: '岩沢高校',
+          joinedAt: '2024-02-01T00:00:00Z',
+          isActive: true
+        },
+        {
+          id: 'student-3',
+          name: '田中次郎',
+          level: '2級',
+          email: 'tanaka@example.com',
+          grade: '高校2年',
+          school: '岩沢高校',
+          joinedAt: '2024-02-15T00:00:00Z',
+          isActive: true
+        }
+      ];
+      
+      setStudents(dummyStudents);
     } catch (error) {
       console.error('塾生の取得に失敗しました:', error);
     } finally {
@@ -132,22 +162,25 @@ const Dashboard: React.FC = () => {
     }
 
     try {
-      const response = await fetch('/api/students', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newStudent),
-      });
+      // ダミーデータで塾生を追加
+      const dummyStudent: Student = {
+        id: `student-${Date.now()}`,
+        name: newStudent.name,
+        level: newStudent.level,
+        email: newStudent.email,
+        grade: newStudent.grade,
+        school: newStudent.school,
+        joinedAt: new Date().toISOString(),
+        isActive: true
+      };
 
-      if (response.ok) {
-        const data = await response.json();
-        setStudents(prev => [...prev, data.student]);
-        setNewStudent({ name: '', level: '3級', email: '', grade: '', school: '' });
-        setShowAddForm(false);
-      }
+      setStudents(prev => [...prev, dummyStudent]);
+      setNewStudent({ name: '', level: '3級', email: '', grade: '', school: '' });
+      setShowAddForm(false);
+      alert('塾生を登録しました');
     } catch (error) {
       console.error('塾生の登録に失敗しました:', error);
+      alert('塾生の登録に失敗しました');
     }
   };
 
