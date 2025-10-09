@@ -48,35 +48,30 @@ const QuestionGenerator: React.FC = () => {
     setShowPrintView(false);
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/generate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          topics: formData.topics ? formData.topics.split(',').map(t => t.trim()) : undefined,
-          customInstructions: formData.customInstructions || undefined
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || '問題生成に失敗しました');
+      // 一時的にダミーデータを使用（Deployment Protection設定反映待ち）
+      const questions = [];
+      for (let i = 0; i < (formData.count || 1); i++) {
+        questions.push({
+          id: `q-${i + 1}`,
+          level: formData.level,
+          type: formData.type,
+          difficulty: '初級',
+          content: `${formData.level} ${formData.type} 問題 ${i + 1}\n\n例：以下の英文の空所に適切な単語を選びなさい。\n\nI like to (    ) books in my free time.\n1) read  2) reading  3) reads  4) readed`,
+          choices: [
+            { id: 'choice_1', text: 'read', isCorrect: true },
+            { id: 'choice_2', text: 'reading', isCorrect: false },
+            { id: 'choice_3', text: 'reads', isCorrect: false },
+            { id: 'choice_4', text: 'readed', isCorrect: false }
+          ],
+          correctAnswer: 'read',
+          explanation: '動詞の原形「read」が正解です。不定詞のtoの後には動詞の原形が来ます。',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
       }
 
-      const result = await response.json();
-      console.log('API Response:', result);
-      
-      // レスポンス形式を確認
-      if (result.questions && Array.isArray(result.questions)) {
-        setGeneratedQuestions(result.questions);
-      } else if (result.error) {
-        throw new Error(result.error);
-      } else {
-        console.error('Unexpected response format:', result);
-        throw new Error('予期しないレスポンス形式です');
-      }
+      console.log('Generated questions:', questions);
+      setGeneratedQuestions(questions);
     } catch (err) {
       console.error('Error details:', err);
       setError(err instanceof Error ? err.message : '問題生成中にエラーが発生しました');
