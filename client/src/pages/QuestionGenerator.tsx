@@ -51,20 +51,69 @@ const QuestionGenerator: React.FC = () => {
       // 一時的にダミーデータを使用（Deployment Protection設定反映待ち）
       const questions = [];
       for (let i = 0; i < (formData.count || 1); i++) {
+        let content, choices, correctAnswer, explanation;
+        
+        if (formData.type === '語彙') {
+          content = `${formData.level} 語彙問題 ${i + 1}\n\n以下の英文の空所に適切な単語を選びなさい。\n\nI (    ) to school every day by bus.\n1) go  2) goes  3) going  4) went`;
+          choices = [
+            { id: 'choice_1', text: 'go', isCorrect: true },
+            { id: 'choice_2', text: 'goes', isCorrect: false },
+            { id: 'choice_3', text: 'going', isCorrect: false },
+            { id: 'choice_4', text: 'went', isCorrect: false }
+          ];
+          correctAnswer = 'go';
+          explanation = '主語が「I」なので、動詞の原形「go」が正解です。';
+        } else if (formData.type === '並び替え') {
+          content = `${formData.level} 並び替え問題 ${i + 1}\n\n以下の単語を正しい順序に並び替えなさい。\n\n「私は昨日映画を見ました」\n\nI / yesterday / a movie / watched`;
+          choices = [
+            { id: 'choice_1', text: 'I watched a movie yesterday.', isCorrect: true },
+            { id: 'choice_2', text: 'I yesterday watched a movie.', isCorrect: false },
+            { id: 'choice_3', text: 'Yesterday I watched a movie.', isCorrect: false },
+            { id: 'choice_4', text: 'A movie I watched yesterday.', isCorrect: false }
+          ];
+          correctAnswer = 'I watched a movie yesterday.';
+          explanation = '英語の語順は「主語 + 動詞 + 目的語 + 時を表す副詞」です。';
+        } else if (formData.type === '長文読解') {
+          content = `${formData.level} 長文読解問題 ${i + 1}\n\n以下の英文を読んで、質問に答えなさい。\n\nTom is a student. He goes to school every day. He likes English very much. He wants to be a teacher in the future.\n\n質問：Tomの将来の夢は何ですか？`;
+          choices = [
+            { id: 'choice_1', text: '教師になること', isCorrect: true },
+            { id: 'choice_2', text: '医者になること', isCorrect: false },
+            { id: 'choice_3', text: 'エンジニアになること', isCorrect: false },
+            { id: 'choice_4', text: 'サッカー選手になること', isCorrect: false }
+          ];
+          correctAnswer = '教師になること';
+          explanation = '本文の「He wants to be a teacher in the future.」から、Tomの将来の夢は教師になることです。';
+        } else if (formData.type === '英作文') {
+          content = `${formData.level} 英作文問題 ${i + 1}\n\n以下の日本語を英語で書きなさい。\n\n「私は毎日学校に行きます。」`;
+          choices = [
+            { id: 'choice_1', text: 'I go to school every day.', isCorrect: true },
+            { id: 'choice_2', text: 'I go to school every day!', isCorrect: false },
+            { id: 'choice_3', text: 'I go to school everyday.', isCorrect: false },
+            { id: 'choice_4', text: 'I go school every day.', isCorrect: false }
+          ];
+          correctAnswer = 'I go to school every day.';
+          explanation = '「毎日」は「every day」、「学校に行く」は「go to school」と表現します。';
+        } else {
+          content = `${formData.level} ${formData.type} 問題 ${i + 1}\n\n問題文を準備中です...`;
+          choices = [
+            { id: 'choice_1', text: '選択肢A', isCorrect: true },
+            { id: 'choice_2', text: '選択肢B', isCorrect: false },
+            { id: 'choice_3', text: '選択肢C', isCorrect: false },
+            { id: 'choice_4', text: '選択肢D', isCorrect: false }
+          ];
+          correctAnswer = '選択肢A';
+          explanation = '正解の説明を準備中です...';
+        }
+        
         questions.push({
           id: `q-${i + 1}`,
           level: formData.level,
           type: formData.type,
           difficulty: '初級',
-          content: `${formData.level} ${formData.type} 問題 ${i + 1}\n\n例：以下の英文の空所に適切な単語を選びなさい。\n\nI like to (    ) books in my free time.\n1) read  2) reading  3) reads  4) readed`,
-          choices: [
-            { id: 'choice_1', text: 'read', isCorrect: true },
-            { id: 'choice_2', text: 'reading', isCorrect: false },
-            { id: 'choice_3', text: 'reads', isCorrect: false },
-            { id: 'choice_4', text: 'readed', isCorrect: false }
-          ],
-          correctAnswer: 'read',
-          explanation: '動詞の原形「read」が正解です。不定詞のtoの後には動詞の原形が来ます。',
+          content: content,
+          choices: choices,
+          correctAnswer: correctAnswer,
+          explanation: explanation,
           createdAt: new Date(),
           updatedAt: new Date()
         });
