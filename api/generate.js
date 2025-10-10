@@ -261,6 +261,7 @@ ${count}問の1空所4択を作成し、**JSONのみ**出力してください�
 - **トークン数**：${config.length_tokens.min}-${config.length_tokens.max}個
 - **文法項目**：${config.allowed_grammar.join(', ')}を使用
 - **禁止文法**：${config.banned_grammar.join(', ')}は使用禁止
+- **重要**：句読点（ピリオド、クエスチョンマーク、イクスクラメーションマーク）も独立したトークンとして含める
 - 各問に日本語解説 \`rationale_ja\` を付す
 
 出力JSONスキーマ:
@@ -269,8 +270,8 @@ ${count}問の1空所4択を作成し、**JSONのみ**出力してください�
   "grade": "${config.grade}",
   "items": [
     {
-      "tokens": ["単語1", "単語2", "単語3", "単語4", "単語5", "単語6"],
-      "answer": "正しい英文",
+      "tokens": ["単語1", "単語2", "単語3", "単語4", "単語5", "単語6", "."],
+      "answer": "正しい英文.",
       "rationale_ja": "正解の理由（日本語）"
     }
   ]
@@ -283,6 +284,7 @@ ${count}問の1空所4択を作成し、**JSONのみ**出力してください�
 - 設問は各本文につき${config.qPer}問。主旨/詳細/推論/語彙(文脈)をバランス良く。
 - 各設問は4択(A–D)。本文の文言と意味で正解が一意。
 - 各設問に根拠文 \`evidence\` と日本語解説 \`rationale_ja\` を付す。
+- **重要**：各本文につき必ず${config.qPer}問の設問を作成してください。
 
 出力JSONスキーマ:
 {
@@ -293,7 +295,28 @@ ${count}問の1空所4択を作成し、**JSONのみ**出力してください�
       "passage": "本文（${config.wMin}-${config.wMax}語）",
       "questions": [
         {
-          "question": "設問文",
+          "question": "設問文1",
+          "choices": ["選択肢1", "選択肢2", "選択肢3", "選択肢4"],
+          "answer": "選択肢1",
+          "evidence": "根拠となる本文の部分",
+          "rationale_ja": "正解の理由（日本語）"
+        },
+        {
+          "question": "設問文2",
+          "choices": ["選択肢1", "選択肢2", "選択肢3", "選択肢4"],
+          "answer": "選択肢1",
+          "evidence": "根拠となる本文の部分",
+          "rationale_ja": "正解の理由（日本語）"
+        },
+        {
+          "question": "設問文3",
+          "choices": ["選択肢1", "選択肢2", "選択肢3", "選択肢4"],
+          "answer": "選択肢1",
+          "evidence": "根拠となる本文の部分",
+          "rationale_ja": "正解の理由（日本語）"
+        },
+        {
+          "question": "設問文4",
           "choices": ["選択肢1", "選択肢2", "選択肢3", "選択肢4"],
           "answer": "選択肢1",
           "evidence": "根拠となる本文の部分",
@@ -398,17 +421,23 @@ function parseGeneratedQuestions(generatedText, level, type, count) {
           explanation: item.rationale_ja
         };
       } else if (type === '長文読解') {
+        // 長文読解の場合は複数の設問を1つの問題として統合
+        const allQuestions = item.questions.map((q, qIndex) => 
+          `質問${qIndex + 1}: ${q.question}\n選択肢: ${q.choices.join(', ')}\n正解: ${q.answer}\n根拠: ${q.evidence}\n解説: ${q.rationale_ja}`
+        ).join('\n\n');
+        
         return {
           ...baseQuestion,
           difficulty: '初級',
-          content: `${item.passage}\n\n質問：${item.questions[0].question}`,
-          choices: item.questions[0].choices.map((choice, i) => ({
-            id: `choice_${i + 1}`,
-            text: choice,
-            isCorrect: choice === item.questions[0].answer
-          })),
-          correctAnswer: item.questions[0].answer,
-          explanation: item.questions[0].rationale_ja
+          content: `${item.passage}\n\n${allQuestions}`,
+          choices: [
+            { id: 'choice_1', text: '設問1の正解', isCorrect: true },
+            { id: 'choice_2', text: '設問2の正解', isCorrect: false },
+            { id: 'choice_3', text: '設問3の正解', isCorrect: false },
+            { id: 'choice_4', text: '設問4の正解', isCorrect: false }
+          ],
+          correctAnswer: '設問1の正解',
+          explanation: `長文読解問題（${item.questions.length}問）\n\n${allQuestions}`
         };
       } else if (type === '英作文') {
         return {
