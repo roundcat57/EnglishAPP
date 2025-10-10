@@ -25,10 +25,5 @@
   ],
   "env": {
     "REACT_APP_API_BASE": ""
-  },
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "nodejs18.x"
-    }
   }
 }
