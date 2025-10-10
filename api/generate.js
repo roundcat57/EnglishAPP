@@ -87,6 +87,13 @@ const levelConfig = {
   '3級': {
     grade: '3級',
     target_cefr: 'A2',
+    // 並べ替え問題専用設定
+    jumbled_tokens: { min: 8, max: 10 },
+    jumbled_anchors: { min: 2 },
+    jumbled_movables: { min: 2, max: 2 },
+    jumbled_grammar_tier: 3,
+    jumbled_banned_grammar: ['分詞構文', '高度倒置'],
+    // 従来の設定（他の問題タイプ用）
     length_tokens: { min: 8, max: 10 },
     sentence_words: { min: 12, max: 18 },
     allowed_grammar: ['because/if節', '比較級/最上級', 'be going to', '現在完了形', '受動態（基本）', '関係代名詞that', '不定詞/動名詞'],
@@ -101,6 +108,21 @@ const levelConfig = {
   '準2級': {
     grade: '準2級',
     target_cefr: 'A2+/B1-',
+    // 並べ替え問題専用設定（詳細仕様準拠）
+    jumbled_tokens: { min: 12, max: 16 }, // 語彙問題に合わせて長めに
+    jumbled_anchors: { min: 2, max: 3 },
+    jumbled_movables: { min: 2, max: 3 }, // 2-3個
+    jumbled_grammar_tier: 4,
+    jumbled_patterns: ['P1', 'P2', 'P3'], // 構文パターン（いずれか1つだけ必須）
+    jumbled_pattern_descriptions: {
+      'P1': '受動態 (現在/過去) ※完了形は不可',
+      'P2': 'to不定詞（副詞的目的/結果） ※「to + 動詞原形」の一塊',
+      'P3': 'that節の目的語（think/say/know + that + SV）※関係代名詞ではない'
+    },
+    jumbled_banned_grammar: ['現在完了', '過去完了', '関係代名詞', '関係副詞', '高度な倒置', '分詞構文の多重化', '学術語'],
+    jumbled_lexicon: '高頻度語(NGSL 1–2000相当)中心',
+    jumbled_difficulty_range: { min: 0.54, max: 0.62 },
+    // 従来の設定（他の問題タイプ用）
     length_tokens: { min: 6, max: 7 },
     sentence_words: { min: 10, max: 15 },
     allowed_grammar: ['受動態(過去/現在)', '不定詞/動名詞', '関係代名詞 that/which'],
@@ -311,12 +333,13 @@ ${count}問の並び替え問題を作成し、**JSONのみ**出力してくだ�
 - 文の長さや複雑さも変化をつける
 
 要件：
-- **トークン数**：${config.length_tokens.min}-${config.length_tokens.max}個
+- **トークン数**：${config.jumbled_tokens ? config.jumbled_tokens.min : config.length_tokens.min}-${config.jumbled_tokens ? config.jumbled_tokens.max : config.length_tokens.max}個
 - **文法項目**：${config.allowed_grammar.join(', ')}を使用
-- **禁止文法**：${config.banned_grammar.join(', ')}は使用禁止
+- **禁止文法**：${config.jumbled_banned_grammar ? config.jumbled_banned_grammar.join(', ') : config.banned_grammar.join(', ')}は使用禁止
 - **重要**：句読点（ピリオド、クエスチョンマーク、イクスクラメーションマーク）も独立したトークンとして含める
 - **文構造の複雑さ**：級に応じて従属節、関係代名詞、完了形などを適切に使用
 - **語彙レベル**：級に応じた中頻度語彙、句動詞、コロケーションを含む
+- **準2級特別要件**：${config.grade === '準2級' ? '受動態、to不定詞、that節の目的語のいずれかを含む複雑な文構造を使用' : ''}
 - 各問に日本語解説 \`rationale_ja\` を付す
 - \`self_check\`で5段階自己採点：語彙難度/文法難度/多解リスク/文長適合/級適合（期待=3）。外れたら**自動修正**後に出力。
 
@@ -325,11 +348,13 @@ ${count}問の並び替え問題を作成し、**JSONのみ**出力してくだ�
   "grade_profile": {
     "grade": "${config.grade}",
     "target_cefr": "${config.target_cefr}",
-    "length_tokens": { "min": ${config.length_tokens.min}, "max": ${config.length_tokens.max} },
+    "length_tokens": { "min": ${config.jumbled_tokens ? config.jumbled_tokens.min : config.length_tokens.min}, "max": ${config.jumbled_tokens ? config.jumbled_tokens.max : config.length_tokens.max} },
     "allowed_grammar": ${JSON.stringify(config.allowed_grammar)},
-    "banned_grammar": ${JSON.stringify(config.banned_grammar)},
+    "banned_grammar": ${JSON.stringify(config.jumbled_banned_grammar ? config.jumbled_banned_grammar : config.banned_grammar)},
     "vocab_policy": ${JSON.stringify(config.vocab_policy)},
-    "uniqueness_rule": "${config.uniqueness_rule}"
+    "uniqueness_rule": "${config.uniqueness_rule}",
+    "jumbled_patterns": ${config.jumbled_patterns ? JSON.stringify(config.jumbled_patterns) : 'null'},
+    "jumbled_pattern_descriptions": ${config.jumbled_pattern_descriptions ? JSON.stringify(config.jumbled_pattern_descriptions) : 'null'}
   }
 }
 
