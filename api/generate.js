@@ -1,4 +1,4 @@
-module.exports = async function handler(req, res) {
+export default function handler(req, res) {
   // CORS設定
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -25,7 +25,7 @@ module.exports = async function handler(req, res) {
         level: level || '3級',
         type: type || '語彙',
         difficulty: '初級',
-        content: `${level || '3級'} ${type || '語彙'} 問題 ${i + 1} (API生成)`,
+        content: `${level || '3級'} ${type || '語彙'} 問題 ${i + 1} (API生成成功!)`,
         choices: [
           { id: 'choice_1', text: '選択肢A', isCorrect: true },
           { id: 'choice_2', text: '選択肢B', isCorrect: false },
@@ -33,7 +33,7 @@ module.exports = async function handler(req, res) {
           { id: 'choice_4', text: '選択肢D', isCorrect: false }
         ],
         correctAnswer: '選択肢A',
-        explanation: 'APIから生成された問題です。',
+        explanation: 'APIから正常に生成された問題です。',
         createdAt: new Date(),
         updatedAt: new Date()
       });
@@ -50,4 +50,4 @@ module.exports = async function handler(req, res) {
     console.error('問題生成エラー:', error);
     res.status(500).json({ error: '問題生成に失敗しました' });
   }
-};
+}
