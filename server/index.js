@@ -20,7 +20,12 @@ const dbPath = process.env.DATABASE_URL || path.join(__dirname, 'data', 'databas
 // Railway用の環境変数設定
 if (process.env.RAILWAY_ENVIRONMENT) {
   process.env.NODE_ENV = 'production';
+  console.log('🚂 Railway環境で起動中...');
 }
+
+// データベース初期化の確認
+const db = require('./database');
+console.log('📊 データベース接続確認中...');
 
 // セキュリティミドルウェア
 app.use(helmet());

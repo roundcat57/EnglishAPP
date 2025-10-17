@@ -9,7 +9,7 @@
     "client": "cd client && npm start",
     "build": "echo 'No build step needed for Railway deployment'",
     "install-all": "npm install && cd server && npm install && cd ../client && npm install",
-    "start": "cd server && node index.js",
+    "start": "cd server && NODE_ENV=production node index.js",
     "postinstall": "cd server && npm install"
   },
   "keywords": ["英検", "英語", "問題生成", "AI", "教育", "Gemini", "岩沢学院"],
