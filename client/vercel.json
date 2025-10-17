@@ -11,8 +11,24 @@
   ],
   "routes": [
     {
+      "src": "/static/(.*)",
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/asset-manifest.json",
+      "dest": "/asset-manifest.json"
+    },
+    {
+      "src": "/manifest.json",
+      "dest": "/manifest.json"
+    },
+    {
+      "src": "/favicon.ico",
+      "dest": "/favicon.ico"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/$1"
+      "dest": "/index.html"
     }
   ],
   "env": {
