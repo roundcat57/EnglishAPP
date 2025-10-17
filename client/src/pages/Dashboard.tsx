@@ -109,7 +109,50 @@ const Dashboard: React.FC = () => {
 
   const fetchStudents = async () => {
     try {
-      // ダミーデータで塾生を初期化
+      const response = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/students`);
+      if (response.ok) {
+        const data = await response.json();
+        setStudents(data);
+      } else {
+        console.error('塾生の取得に失敗しました:', response.status);
+        // フォールバック: ダミーデータを使用
+        const dummyStudents: Student[] = [
+          {
+            id: 'student-1',
+            name: '山田太郎',
+            level: '3級',
+            email: 'yamada@example.com',
+            grade: '中学3年',
+            school: '岩沢中学校',
+            joinedAt: '2024-01-15T00:00:00Z',
+            isActive: true
+          },
+          {
+            id: 'student-2',
+            name: '佐藤花子',
+            level: '準2級',
+            email: 'sato@example.com',
+            grade: '高校1年',
+            school: '岩沢高校',
+            joinedAt: '2024-02-01T00:00:00Z',
+            isActive: true
+          },
+          {
+            id: 'student-3',
+            name: '田中次郎',
+            level: '2級',
+            email: 'tanaka@example.com',
+            grade: '高校2年',
+            school: '岩沢高校',
+            joinedAt: '2024-02-15T00:00:00Z',
+            isActive: true
+          }
+        ];
+        setStudents(dummyStudents);
+      }
+    } catch (error) {
+      console.error('塾生の取得に失敗しました:', error);
+      // フォールバック: ダミーデータを使用
       const dummyStudents: Student[] = [
         {
           id: 'student-1',
@@ -142,10 +185,7 @@ const Dashboard: React.FC = () => {
           isActive: true
         }
       ];
-      
       setStudents(dummyStudents);
-    } catch (error) {
-      console.error('塾生の取得に失敗しました:', error);
     } finally {
       setLoading(false);
     }
@@ -162,25 +202,27 @@ const Dashboard: React.FC = () => {
     }
 
     try {
-      // ダミーデータで塾生を追加
-      const dummyStudent: Student = {
-        id: `student-${Date.now()}`,
-        name: newStudent.name,
-        level: newStudent.level,
-        email: newStudent.email,
-        grade: newStudent.grade,
-        school: newStudent.school,
-        joinedAt: new Date().toISOString(),
-        isActive: true
-      };
+      const response = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/students`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newStudent)
+      });
 
-      setStudents(prev => [...prev, dummyStudent]);
-      setNewStudent({ name: '', level: '3級', email: '', grade: '', school: '' });
-      setShowAddForm(false);
-      alert('塾生を登録しました');
+      if (response.ok) {
+        const addedStudent = await response.json();
+        setStudents(prev => [...prev, addedStudent]);
+        setNewStudent({ name: '', level: '3級', email: '', grade: '', school: '' });
+        setShowAddForm(false);
+        alert('塾生を登録しました');
+      } else {
+        const errorData = await response.json();
+        alert(`登録に失敗しました: ${errorData.error || '不明なエラー'}`);
+      }
     } catch (error) {
       console.error('塾生の登録に失敗しました:', error);
-      alert('塾生の登録に失敗しました');
+      alert('塾生の登録に失敗しました。ネットワークエラーを確認してください。');
     }
   };
 
@@ -195,7 +237,7 @@ const Dashboard: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`/api/students/${editingStudent.id}`, {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/students/${editingStudent.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -223,14 +265,19 @@ const Dashboard: React.FC = () => {
   const handleDeleteStudent = async (id: string) => {
     if (window.confirm('この塾生を削除しますか？')) {
       try {
-        const response = await fetch(`/api/students/${id}`, {
+        const response = await fetch(`${process.env.REACT_APP_API_BASE || ''}/api/students/${id}`, {
           method: 'DELETE'
         });
         if (response.ok) {
           setStudents(prev => prev.filter(s => s.id !== id));
+          alert('塾生が正常に削除されました');
+        } else {
+          const errorData = await response.json();
+          alert(`削除に失敗しました: ${errorData.error || '不明なエラー'}`);
         }
       } catch (error) {
         console.error('削除に失敗しました:', error);
+        alert('削除に失敗しました。ネットワークエラーを確認してください。');
       }
     }
   };
