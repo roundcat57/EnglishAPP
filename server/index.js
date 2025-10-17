@@ -10,8 +10,15 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+// Railway環境の設定
+if (process.env.RAILWAY_ENVIRONMENT) {
+  process.env.NODE_ENV = 'production';
+  console.log('🚂 Railway環境で起動中...');
+}
+
 // データベース初期化
 const db = require('./database');
+console.log('📊 データベース接続完了');
 
 // ルートの読み込み
 const questionRoutes = require('./routes/questions');
@@ -20,6 +27,7 @@ const generationRoutes = require('./routes/generation');
 const studentRoutes = require('./routes/students');
 const scoreRoutes = require('./routes/scores');
 const printRoutes = require('./routes/print');
+console.log('✅ ルート読み込み完了');
 
 // セキュリティミドルウェア
 app.use(helmet());
@@ -94,7 +102,22 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 サーバーが起動しました: http://0.0.0.0:${PORT}`);
   console.log(`📚 岩沢学院 英検問題特化APIが利用可能です`);
   console.log(`🌍 環境: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔗 ヘルスチェック: http://0.0.0.0:${PORT}/api/health`);
+  console.log(`📊 データベース: ${process.env.DATABASE_URL || 'default'}`);
 });
+
+// Railway環境の確認
+if (process.env.RAILWAY_ENVIRONMENT) {
+  console.log('🚂 Railway環境で起動中...');
+  process.env.NODE_ENV = 'production';
+}
+
+// 起動確認
+console.log('📋 起動パラメータ:');
+console.log(`  - PORT: ${PORT}`);
+console.log(`  - NODE_ENV: ${process.env.NODE_ENV}`);
+console.log(`  - RAILWAY_ENVIRONMENT: ${process.env.RAILWAY_ENVIRONMENT}`);
+console.log(`  - DATABASE_URL: ${process.env.DATABASE_URL || 'default'}`);
 
 // エラーハンドリング
 server.on('error', (err) => {
