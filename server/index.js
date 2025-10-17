@@ -3,19 +3,16 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
-require('dotenv').config();
-const db = require('./database');
 
-const questionRoutes = require('./routes/questions');
-const questionSetRoutes = require('./routes/questionSets');
-const generationRoutes = require('./routes/generation');
-const studentRoutes = require('./routes/students');
-const scoreRoutes = require('./routes/scores');
-const printRoutes = require('./routes/print');
+// 環境変数の読み込み（エラーを防ぐため）
+try {
+  require('dotenv').config();
+} catch (error) {
+  console.log('⚠️ dotenv読み込みエラー（本番環境では正常）:', error.message);
+}
 
 const app = express();
 const PORT = process.env.PORT || 8000;
-const dbPath = process.env.DATABASE_URL || path.join(__dirname, 'data', 'database.sqlite');
 
 // Railway用の環境変数設定
 if (process.env.RAILWAY_ENVIRONMENT) {
@@ -23,9 +20,29 @@ if (process.env.RAILWAY_ENVIRONMENT) {
   console.log('🚂 Railway環境で起動中...');
 }
 
-// データベース初期化の確認
-const db = require('./database');
-console.log('📊 データベース接続確認中...');
+// データベース初期化（エラーを防ぐため）
+let db;
+try {
+  db = require('./database');
+  console.log('📊 データベース接続確認中...');
+} catch (error) {
+  console.log('⚠️ データベース初期化エラー:', error.message);
+}
+
+// ルートの読み込み（エラーを防ぐため）
+let questionRoutes, questionSetRoutes, generationRoutes, studentRoutes, scoreRoutes, printRoutes;
+
+try {
+  questionRoutes = require('./routes/questions');
+  questionSetRoutes = require('./routes/questionSets');
+  generationRoutes = require('./routes/generation');
+  studentRoutes = require('./routes/students');
+  scoreRoutes = require('./routes/scores');
+  printRoutes = require('./routes/print');
+  console.log('✅ ルート読み込み完了');
+} catch (error) {
+  console.log('⚠️ ルート読み込みエラー:', error.message);
+}
 
 // セキュリティミドルウェア
 app.use(helmet());
@@ -52,12 +69,12 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // ルート
-app.use('/api/questions', questionRoutes);
-app.use('/api/question-sets', questionSetRoutes);
-app.use('/api/generation', generationRoutes);
-app.use('/api/students', studentRoutes);
-app.use('/api/scores', scoreRoutes);
-app.use('/api/print', printRoutes);
+if (questionRoutes) app.use('/api/questions', questionRoutes);
+if (questionSetRoutes) app.use('/api/question-sets', questionSetRoutes);
+if (generationRoutes) app.use('/api/generation', generationRoutes);
+if (studentRoutes) app.use('/api/students', studentRoutes);
+if (scoreRoutes) app.use('/api/scores', scoreRoutes);
+if (printRoutes) app.use('/api/print', printRoutes);
 
 // ヘルスチェック
 app.get('/api/health', (req, res) => {
