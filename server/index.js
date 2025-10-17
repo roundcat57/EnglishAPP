@@ -96,7 +96,15 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`📚 岩沢学院 英検問題特化APIが利用可能です`);
   console.log(`💾 データベース: ${dbPath}`);
   console.log(`🌍 環境: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔧 Railway環境: ${process.env.RAILWAY_ENVIRONMENT || 'false'}`);
 });
+
+// Railway用の起動確認
+if (process.env.RAILWAY_ENVIRONMENT) {
+  console.log('✅ Railway環境で起動中...');
+  // Railway用の追加設定
+  process.env.NODE_ENV = 'production';
+}
 
 // エラーハンドリング
 server.on('error', (err) => {
