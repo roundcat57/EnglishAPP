@@ -7,12 +7,14 @@ const path = require('path');
 // 環境変数の読み込み
 require('dotenv').config();
 
-const app = express();
-const PORT = process.env.PORT || 8000;
-
-// Railway環境の設定
+// Railway環境での環境変数設定
 if (process.env.RAILWAY_ENVIRONMENT) {
   process.env.NODE_ENV = 'production';
+  process.env.GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyDvEGLt-BW4o3ig8j1TYjIu6cjXPAfPBhA';
+  process.env.GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  process.env.ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'secure-admin-2024';
+  process.env.CLIENT_URL = process.env.CLIENT_URL || 'https://english-ayvuok004-mitama.vercel.app';
+  process.env.DATABASE_URL = process.env.DATABASE_URL || 'sqlite:./data/database.sqlite';
   console.log('🚂 Railway環境で起動中...');
 }
 
@@ -24,11 +26,13 @@ console.log(`  - RAILWAY_ENVIRONMENT: ${process.env.RAILWAY_ENVIRONMENT}`);
 console.log(`  - DATABASE_URL: ${process.env.DATABASE_URL || 'default'}`);
 
 // データベース初期化
+let db;
 try {
-  const db = require('./database');
+  db = require('./database');
   console.log('📊 データベース接続完了');
 } catch (error) {
   console.error('❌ データベース初期化エラー:', error);
+  console.log('⚠️ データベースなしで起動を続行します');
   // データベースエラーでもサーバーは起動を続行
 }
 
