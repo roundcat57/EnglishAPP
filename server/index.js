@@ -15,7 +15,12 @@ const printRoutes = require('./routes/print');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
-const dbPath = process.env.DATABASE_URL || path.join(__dirname, 'database.sqlite');
+const dbPath = process.env.DATABASE_URL || path.join(__dirname, 'data', 'database.sqlite');
+
+// Railway用の環境変数設定
+if (process.env.RAILWAY_ENVIRONMENT) {
+  process.env.NODE_ENV = 'production';
+}
 
 // セキュリティミドルウェア
 app.use(helmet());
