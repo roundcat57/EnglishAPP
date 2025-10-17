@@ -102,14 +102,21 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`💾 データベース: ${dbPath}`);
   console.log(`🌍 環境: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔧 Railway環境: ${process.env.RAILWAY_ENVIRONMENT || 'false'}`);
+  console.log(`🔗 ヘルスチェック: http://0.0.0.0:${PORT}/api/health`);
 });
 
 // Railway用の起動確認
 if (process.env.RAILWAY_ENVIRONMENT) {
   console.log('✅ Railway環境で起動中...');
-  // Railway用の追加設定
   process.env.NODE_ENV = 'production';
 }
+
+// 起動確認のための追加ログ
+console.log('📋 起動パラメータ:');
+console.log(`  - PORT: ${PORT}`);
+console.log(`  - NODE_ENV: ${process.env.NODE_ENV}`);
+console.log(`  - RAILWAY_ENVIRONMENT: ${process.env.RAILWAY_ENVIRONMENT}`);
+console.log(`  - DATABASE_URL: ${process.env.DATABASE_URL || 'default'}`);
 
 // エラーハンドリング
 server.on('error', (err) => {
