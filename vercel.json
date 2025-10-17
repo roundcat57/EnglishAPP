@@ -4,8 +4,5 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "env": {
-    "REACT_APP_API_BASE": "https://web-production-5da6.up.railway.app"
-  }
+  ]
 }
