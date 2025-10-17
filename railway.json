@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "cd server && npm install && node index.minimal.js",
+    "startCommand": "cd server && npm install --production && node index.minimal.js",
     "healthcheckPath": "/api/health",
     "healthcheckTimeout": 600,
     "restartPolicyType": "ON_FAILURE",
