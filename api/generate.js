@@ -59,6 +59,20 @@ const levelConfig = {
   '5級': {
     grade: '5級',
     target_cefr: 'A1',
+    // 並べ替え問題専用設定
+    jumbled_tokens: { min: 5, max: 7 },
+    jumbled_anchors: { min: 1, max: 2 },
+    jumbled_movables: { min: 1, max: 2 },
+    jumbled_grammar_tier: 1,
+    jumbled_patterns: ['P1', 'P2'],
+    jumbled_pattern_descriptions: {
+      'P1': 'be動詞/一般動詞（現在） ※基本的な文構造',
+      'P2': 'can + 動詞原形 ※助動詞の基本用法'
+    },
+    jumbled_banned_grammar: ['受動態', '完了形', '関係代名詞', '分詞構文', '比較級', '複雑な時制'],
+    jumbled_lexicon: '高頻度日常語彙中心',
+    jumbled_difficulty_range: { min: 0.3, max: 0.4 },
+    // 従来の設定（他の問題タイプ用）
     length_tokens: { min: 6, max: 8 },
     sentence_words: { min: 8, max: 12 },
     allowed_grammar: ['be動詞/一般動詞（現在）', 'can', '前置詞 in/on/at', '現在進行形', '過去形（基本）'],
@@ -73,6 +87,21 @@ const levelConfig = {
   '4級': {
     grade: '4級',
     target_cefr: 'A1+',
+    // 並べ替え問題専用設定
+    jumbled_tokens: { min: 6, max: 8 },
+    jumbled_anchors: { min: 1, max: 2 },
+    jumbled_movables: { min: 1, max: 2 },
+    jumbled_grammar_tier: 2,
+    jumbled_patterns: ['P1', 'P2', 'P3'],
+    jumbled_pattern_descriptions: {
+      'P1': '現在進行形 ※be + 動詞-ing',
+      'P2': '過去形（規則動詞中心） ※動詞の過去形',
+      'P3': 'will + 動詞原形 ※未来形の基本'
+    },
+    jumbled_banned_grammar: ['受動態(複雑)', '完了形', '関係代名詞', '分詞構文', '高度な時制'],
+    jumbled_lexicon: '高頻度日常語彙、基本句動詞中心',
+    jumbled_difficulty_range: { min: 0.4, max: 0.5 },
+    // 従来の設定（他の問題タイプ用）
     length_tokens: { min: 7, max: 9 },
     sentence_words: { min: 10, max: 15 },
     allowed_grammar: ['現在進行形', '過去（規則動詞中心）', '頻度副詞', 'will', '比較級（基本）'],
@@ -137,6 +166,21 @@ const levelConfig = {
   '2級': {
     grade: '2級',
     target_cefr: 'B1',
+    // 並べ替え問題専用設定
+    jumbled_tokens: { min: 10, max: 14 },
+    jumbled_anchors: { min: 2, max: 3 },
+    jumbled_movables: { min: 2, max: 3 },
+    jumbled_grammar_tier: 5,
+    jumbled_patterns: ['P1', 'P2', 'P3'],
+    jumbled_pattern_descriptions: {
+      'P1': '現在完了(継続/経験/完了) ※have/has + 過去分詞',
+      'P2': '受動態 ※be + 過去分詞',
+      'P3': '分詞構文(単純) ※分詞による副詞節'
+    },
+    jumbled_banned_grammar: ['仮定法過去完了(高度)', '関係副詞の多重入れ子', '高度な倒置'],
+    jumbled_lexicon: '一般的語彙中心',
+    jumbled_difficulty_range: { min: 0.6, max: 0.7 },
+    // 従来の設定（他の問題タイプ用）
     length_tokens: { min: 6, max: 7 },
     sentence_words: { min: 12, max: 18 },
     allowed_grammar: ['現在完了(継続/経験/完了)', '受動', '分詞構文(単純)'],
@@ -151,6 +195,21 @@ const levelConfig = {
   '準1級': {
     grade: '準1級',
     target_cefr: 'B2',
+    // 並べ替え問題専用設定
+    jumbled_tokens: { min: 14, max: 18 },
+    jumbled_anchors: { min: 3, max: 4 },
+    jumbled_movables: { min: 3, max: 4 },
+    jumbled_grammar_tier: 6,
+    jumbled_patterns: ['P1', 'P2', 'P3'],
+    jumbled_pattern_descriptions: {
+      'P1': '複文(従属節)の拡張 ※複雑な従属節構造',
+      'P2': '抽象話題 ※抽象概念を含む文構造',
+      'P3': 'コロケーション強化 ※自然な語の組み合わせ'
+    },
+    jumbled_banned_grammar: ['C1相当の学術長文構文(ここでは不可)', '超低頻度語'],
+    jumbled_lexicon: '抽象語彙/学術寄り中心',
+    jumbled_difficulty_range: { min: 0.7, max: 0.8 },
+    // 従来の設定（他の問題タイプ用）
     length_tokens: { min: 6, max: 7 },
     sentence_words: { min: 15, max: 22 },
     allowed_grammar: ['複文(従属節)の拡張', '抽象話題', 'コロケーション強化'],
@@ -165,6 +224,21 @@ const levelConfig = {
   '1級': {
     grade: '1級',
     target_cefr: 'C1',
+    // 並べ替え問題専用設定
+    jumbled_tokens: { min: 16, max: 22 },
+    jumbled_anchors: { min: 4, max: 5 },
+    jumbled_movables: { min: 4, max: 5 },
+    jumbled_grammar_tier: 7,
+    jumbled_patterns: ['P1', 'P2', 'P3'],
+    jumbled_pattern_descriptions: {
+      'P1': '高度な従属節 ※複雑な従属節構造',
+      'P2': '慣用表現 ※自然な慣用表現',
+      'P3': '抽象的・学術寄り語彙 ※高度な語彙'
+    },
+    jumbled_banned_grammar: ['C2相当の専門領域の超低頻度語'],
+    jumbled_lexicon: '学術語彙/複雑な表現中心',
+    jumbled_difficulty_range: { min: 0.8, max: 0.9 },
+    // 従来の設定（他の問題タイプ用）
     length_tokens: { min: 7, max: 8 },
     sentence_words: { min: 18, max: 28 },
     allowed_grammar: ['高度な従属節', '慣用表現', '抽象的・学術寄り語彙'],
@@ -201,12 +275,19 @@ ${count}問の1空所4択を作成し、**JSONのみ**出力してください�
 - 日常会話、学校生活、趣味、家族、旅行、環境、科学、文化など様々なトピックから出題
 - 文の長さや複雑さも変化をつける
 - 単語の意味、文法、語法、慣用表現など様々な観点から出題
+- **現在完了の経験用法を含む問題も積極的に出題してください**
 
 要件：
 - **文長は必ず ${config.sentence_words.min}-${config.sentence_words.max} 語**、空所は( )。
 - **文構造の複雑さ**：級に応じて従属節、関係代名詞、完了形などを適切に使用
 - **語彙レベル**：級に応じた中頻度語彙、句動詞、コロケーションを含む
 - **重要**：短い文は禁止。必ず指定された語数以上で作成してください。
+- **文法の正確性**：以下の文法ルールを厳密に守ってください：
+  - have been to = 「〜に行ったことがある」（経験）
+  - have gone to = 「〜に行ってしまった」（完了・不在）
+  - 現在完了の経験用法では必ず「have been to」を使用
+  - 時制の一致、主語と動詞の一致、前置詞の用法を正確に
+  - **特に「〜に行ったことがある」という経験を表す場合は必ず「have been to」を使用し、「have gone to」は使用禁止**
 - 選択肢は**品詞一致**。ダミーは「語法/前置詞/時制/コロケーション」ズレで自然に見せる（場違い語×）。
 - 各問に日本語解説 \`rationale_ja\` と、誤答ごとの \`distractor_notes_ja\` を付す。
 - \`targets\` に grammar / vocab_tier / length などメタ情報を格納。
@@ -267,6 +348,7 @@ ${count}問の文法問題を作成し、**JSONのみ**出力してください�
 - 時制、受動態、比較級、関係代名詞など様々な文法項目を含む
 - 日常会話、学校生活、趣味、家族、旅行、環境、科学、文化など様々なトピックから出題
 - 文の長さや複雑さも変化をつける
+- **現在完了の経験用法を含む問題も積極的に出題してください**
 
 要件：
 - **文長は必ず ${config.sentence_words.min}-${config.sentence_words.max} 語**、空所は( )。
@@ -274,6 +356,12 @@ ${count}問の文法問題を作成し、**JSONのみ**出力してください�
 - **禁止文法**：${config.banned_grammar.join(', ')}は使用禁止
 - **文構造の複雑さ**：級に応じて従属節、関係代名詞、完了形などを適切に使用
 - **語彙レベル**：級に応じた中頻度語彙、句動詞、コロケーションを含む
+- **文法の正確性**：以下の文法ルールを厳密に守ってください：
+  - have been to = 「〜に行ったことがある」（経験）
+  - have gone to = 「〜に行ってしまった」（完了・不在）
+  - 現在完了の経験用法では必ず「have been to」を使用
+  - 時制の一致、主語と動詞の一致、前置詞の用法を正確に
+  - **特に「〜に行ったことがある」という経験を表す場合は必ず「have been to」を使用し、「have gone to」は使用禁止**
 - 選択肢は**品詞一致**。ダミーは「語法/前置詞/時制/コロケーション」ズレで自然に見せる
 - 各問に日本語解説 \`rationale_ja\` を付す
 - \`self_check\`で5段階自己採点：語彙難度/文法難度/多解リスク/文長適合/級適合（期待=3）。外れたら**自動修正**後に出力。
