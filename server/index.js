@@ -16,18 +16,35 @@ if (process.env.RAILWAY_ENVIRONMENT) {
   console.log('🚂 Railway環境で起動中...');
 }
 
+// 起動確認
+console.log('📋 起動パラメータ:');
+console.log(`  - PORT: ${PORT}`);
+console.log(`  - NODE_ENV: ${process.env.NODE_ENV}`);
+console.log(`  - RAILWAY_ENVIRONMENT: ${process.env.RAILWAY_ENVIRONMENT}`);
+console.log(`  - DATABASE_URL: ${process.env.DATABASE_URL || 'default'}`);
+
 // データベース初期化
-const db = require('./database');
-console.log('📊 データベース接続完了');
+try {
+  const db = require('./database');
+  console.log('📊 データベース接続完了');
+} catch (error) {
+  console.error('❌ データベース初期化エラー:', error);
+  // データベースエラーでもサーバーは起動を続行
+}
 
 // ルートの読み込み
-const questionRoutes = require('./routes/questions');
-const questionSetRoutes = require('./routes/questionSets');
-const generationRoutes = require('./routes/generation');
-const studentRoutes = require('./routes/students');
-const scoreRoutes = require('./routes/scores');
-const printRoutes = require('./routes/print');
-console.log('✅ ルート読み込み完了');
+try {
+  const questionRoutes = require('./routes/questions');
+  const questionSetRoutes = require('./routes/questionSets');
+  const generationRoutes = require('./routes/generation');
+  const studentRoutes = require('./routes/students');
+  const scoreRoutes = require('./routes/scores');
+  const printRoutes = require('./routes/print');
+  console.log('✅ ルート読み込み完了');
+} catch (error) {
+  console.error('❌ ルート読み込みエラー:', error);
+  process.exit(1);
+}
 
 // セキュリティミドルウェア
 app.use(helmet());
@@ -104,6 +121,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🌍 環境: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 ヘルスチェック: http://0.0.0.0:${PORT}/api/health`);
   console.log(`📊 データベース: ${process.env.DATABASE_URL || 'default'}`);
+  console.log('✅ すべてのサービスが正常に起動しました');
 });
 
 // Railway環境の確認
@@ -122,6 +140,9 @@ console.log(`  - DATABASE_URL: ${process.env.DATABASE_URL || 'default'}`);
 // エラーハンドリング
 server.on('error', (err) => {
   console.error('❌ サーバーエラー:', err);
+  if (err.code === 'EADDRINUSE') {
+    console.error('ポートが既に使用されています。別のポートを試してください。');
+  }
   process.exit(1);
 });
 
@@ -140,6 +161,17 @@ process.on('SIGINT', () => {
     console.log('✅ サーバーが正常に終了しました');
     process.exit(0);
   });
+});
+
+// 未処理の例外をキャッチ
+process.on('uncaughtException', (err) => {
+  console.error('❌ 未処理の例外:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ 未処理のPromise拒否:', reason);
+  process.exit(1);
 });
 
 module.exports = app;

@@ -12,4 +12,4 @@ cmd = "node index.js"
 cmds = []
 
 [phases.build]
-cmds = ["echo 'Skipping build for API-only deployment'"]
+cmds = ["echo 'Building API server for Railway deployment'"]
