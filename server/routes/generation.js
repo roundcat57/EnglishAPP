@@ -1,7 +1,7 @@
 const express = require('express');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { v4: uuidv4 } = require('uuid');
-require('dotenv').config({ path: '../../.env' });
+require('dotenv').config({ path: '../.env' });
 
 const router = express.Router();
 
